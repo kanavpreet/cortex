@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Matik
 
 ## Project Overview
@@ -15,6 +16,9 @@ Matik is where reliability engineers and tools come together.
 - [Prod Database Information](https://porter.a.musta.ch/mysql/clusters/biztech)
 
 # cortex
+=======
+# Cortex
+>>>>>>> 48a5fe4 (Introduction to Cortex)
 
 Cotex is a reliability data catalog plus LLM-powered intelligence for technical operations. 
 
