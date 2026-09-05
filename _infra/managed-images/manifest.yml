@@ -1,0 +1,170 @@
+################################################################################################
+# This is a Managed Images Manifest.
+#
+# You can lock the entire manifest by setting:
+#
+# locked: true
+# lock_reason: reasoning for the lock.
+#
+# You can lock a specific repository (ex: ubuntu2204) for a specific registry by setting:
+#
+# registries:
+#   - name: "airbnb-prod"
+#     ...
+#     repositories:
+#       - name: "ubuntu2204"
+#         locked: true
+#         lock_reason: reasoning for the lock.
+#         images: []
+#
+# See https://air.bb/managed-images for more information.
+#
+# Note: comments, formating and order not guaranteed to be preserved.
+###############################################################################################
+registries:
+- alias: airbnb-prod-us-east-1
+  repositories:
+  - name: airconda
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:d040c2210cb6ec477c0ec07083b861f55ae8073ceec719d1eae28e86d4d601e3
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:f7e398830387e40bbe4d8e276c67b735220acfde8508e51f635ea7e980a75e82
+  - name: amazon2
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:9ee7368e316da5d881ffbd32404fd243346e6ac5145115613f2452a4c4da7275
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:00c59b5109e22d2590cfeca2d1809d156803ec45f88f32bd2d36f91f43480488
+  - name: amazon2023
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:2a069c4916acac74fa70daaa3031f0d97da96b0489d5e511ad323c5e97c30418
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:58810f0405be8d11afad0ed35bb6c4d1cae1e6fcd4ccf8861533faa0c59e46ae
+  - name: openjdk-11
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:4b4ee77f5365ae7c2f71f63f4c7ed9ca835690030f4c8eeeb22ba3626e5533d3
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:22f31325127c36fc455aae797e4f6696af33c232079c00b7534b4ea8b547e886
+  - name: openjdk-11-ubuntu2204
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:6621b7401a7642e77b788976c5b4deffad0b479b91e75d987d278c07beefee1a
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:c7863b9fedc9f4370d75cc1da0d6ce9da58bb8ef03d4bcf1a0a1bd685011d218
+  - name: openjdk-17
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:26dbe1c0729e948f755c059deb313412dd4f536beecf5aadc463488eea983ed0
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:cb538ad1329fce479e2b42ab8f1420e3e48917b9d7a46b8669e8da1571108d0c
+  - name: openjdk-17-ubuntu-22.04
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:08d2057109a8b02c4dbf591726e469bc6da232cb51d6b8319152ea1b18700841
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:19e265d01acbc2e149285b8dd58d34a051adb507ef2e6ca10f90c69694d67a39
+  - name: openjdk-21
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:46ff4df4257edcb90eb5c467267accf0cc30bc7516e82cd7e7abe0f60ae6ae19
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:ac3efe26ab4fcdd6e8c60655df069423b085199b9efef512411f229d6efe77d3
+  - name: openjdk-22-ubuntu2204
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:c769f51b1ac4045191d4007db0406dc6025435a8437541af8d4111f34456807f
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:ce64ac6f56a512198ec5f2115576b099f0ddc67d9438e6a2e075717eefefe62b
+  - name: openjdk-23-ubuntu2204
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:e7aff16e634033715c1a3219e5352ebc06bcaf6905c245b1b38bfb6e0fa22607
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:d2b5bba41aea368549e131f2b32f361677a1bd4acc62ea00aac7d8bf455ca308
+  - name: openjdk-24-ubuntu2204
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:0d71e8de9d9ae953b8d7f3089335333c12de62a815678f8f84b2ef8331c3d765
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:f5c6015f9ed72b647d658aa4452c2c4874ff8a1071ab9108022fa68b20d2d860
+  - name: openjdk-25-ubuntu2204
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:61f8fe0a9cd5e32526feaf271cb0e46b49bb5a26e5122fe29359ba5f300acb58
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:aa11d947b60a1a4a5a1d1518842ea6689ebd67ae8cef42d6507d6afbdee8f811
+  - name: openjdk-8
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:cf0a8faa2e517c1ab00db93f42a3e0025a2dc930fbf114339f4a5c26f03bf819
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:8c5227a01cb0cd7034625776efb34fb83f4010a9f03ee1ca651ce7ae5b699dd9
+  - name: openjdk-8-ubuntu2204
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:e82f690e6206c7c0651017bf62d2372c202fe0d9e8a9ddcaf99922f472a0a30b
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:b308f017b69c468920729bf8540a07e54a2b452cc377172d9571b01f2462a845
+  - name: ubuntu1804
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:e291179b5f098e6944a315310a9772e86f3ed273ee1d41fb32fbccb1acedeb02
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:16a3c20d62cf6d37ae44c4eabde30a349f47256c19464e19314ba7e75106bdb3
+  - name: ubuntu2204
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:747b35ba3287425727d1dcfd19d7b365bbebb052bdf54761792089cd1fde016e
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:b366fd39c3a0f7d2685b0d6ea83869484d6ef8e3374175a2288704a778396ae7
+  - name: ubuntu2404
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:df0062b84f38821120b13d26cab5984f6caf881aea019852eb4612d6bded02ab
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:e7c72ed8362807fdd6c591c074021a4c814fa5d897a2e0b1e663ccb5a2a0e080
+  - name: ubuntu2604
+    images:
+    - ring: candidate
+      tag: 2026-08-31-daily
+      digest: sha256:f8cce1c37f4165860fd2e4ce2c1cdb73d5cfe660fa4082f6927a916d0a2745ab
+    - ring: stable
+      tag: 2026-08-24-daily
+      digest: sha256:37bf9782373fd4c0c7000622aeff9236703ef7bff8e48ff9097cc26e56cef105

@@ -1,0 +1,89 @@
+---
+workload:
+  deployment:
+    replicas: 1
+
+mainContainer:
+  name: matik-mcp
+  imageSpec: mcp-dockerfile
+  command:
+    - python
+    - -m
+    - mcp_server
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1000Mi
+      ephemeral-storage: 512Mi
+    limits:
+      memory: 1000Mi
+      ephemeral-storage: 512Mi
+
+  # Readiness and liveness probes
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    initialDelaySeconds: 15
+    periodSeconds: 20
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    initialDelaySeconds: 15
+    periodSeconds: 20
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  # File mount for matik config and not volume mount for config separation
+  # use volumeMount for directories
+  fileMounts:
+    - filename: matik-mcp-config.yml
+      mountPath: /app/config/matik-mcp-config.yml
+    - filename: metrics.yml
+      mountPath: /app/config/metrics.yml
+
+
+
+components:
+- name: secrets
+- name: logging
+
+attributes:
+  extraPodAnnotations:
+    com.airbnb.container-injector-mutator/mem-mini-announcer: 48Mi
+
+service:
+  ports:
+  - port: 8080
+
+iamRole: matik-staging
+
+# Disable veneur sidecar and rely on otel-collector for all metrics
+disableVeneur: true
+
+supportedCPUArchitectures:
+  - amd64
+  - arm64
+
+environments:
+  staging: {}
+  canary:
+    iamRole: matik-production
+    workload:
+      deployment:
+        replicas: 1
+  production:
+    iamRole: matik-production
+    workload:
+      deployment:
+        autoscaling:
+          minReplicas: 1
+          maxReplicas: 4
+          targetCPUUtilizationPercentage: 50
+  sandbox:
+    iamRole: matik-sandbox

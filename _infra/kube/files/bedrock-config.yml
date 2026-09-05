@@ -1,0 +1,10 @@
+---
+# Bedrock (LLM Fusion Hub AWS Bedrock proxy) configuration
+
+bedrock:
+  base_url: {{ .Env.Params.bedrock.base_url }} # Based URL of bedrock endpoint
+  region: {{ .Env.Params.bedrock.region }} # AWS region of the bedrock endpoint
+  default_model: {{ .Env.Params.bedrock.default_model }} # Default model to be used by bedrock
+  max_tokens: {{ .Env.Params.bedrock.max_tokens }} # Maximum number of tokens in the response
+  max_retries: {{ .Env.Params.bedrock.max_retries }} # Maximum number of retry attempts for failed requests
+  backoff_delays: {{ .Env.Params.bedrock.backoff_delays | toJson }} # Delay durations in seconds between retry attempts

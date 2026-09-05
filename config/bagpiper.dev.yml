@@ -1,0 +1,4 @@
+databagName: matik
+bagpiperEnvironment: development
+privateKeyPath: _infra/keys/databag.development.sec.key
+validationEnvironments: ["development", "production"]

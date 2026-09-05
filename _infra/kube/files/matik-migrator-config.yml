@@ -1,0 +1,25 @@
+---
+# Common configuration for Matik Migrator
+# Service for database migrations and data migration tasks
+# Documentation: https://developers.a.musta.ch/docs/default/component/kube-gen/kube-gen/configs/files
+
+# Common configuration shared across services
+common:
+  environment: {{ .Env.Name }}  # Deployment environment
+  log_level: INFO  # Logging level
+
+# Database configuration supporting AWS IAM authentication for RDS connections
+mysql:
+  engine: mysql  # Database engine type, e.g. 'mysql'
+  endpoint: {{ .Env.Params.mysql.rds_endpoint }}  # Database host/endpoint, e.g. 'localhost' or RDS endpoint
+  port: 3306  # Database port, default 3306 for MySQL
+  username: {{ .Env.Params.mysql.migrator.rds_username }}  # Username for database authentication
+  password: '{{ .App.Secrets.mysql.migrator.rds_password | default "" }}'  # Password for traditional authentication (not used when use_iam is True)
+  database: {{ .Env.Params.mysql.rds_database }}  # Database name to connect to
+  ssl_mode: required  # SSL/TLS mode: 'required', 'preferred', or 'disabled'
+  use_iam: {{ .Env.Params.mysql.use_iam }}  # Enable AWS IAM authentication for RDS connections
+  # Settings used when using IAM auth, use_iam: true -- COMMENT OUT BELOW ONCE WE FULLY MIGRATE ALL ENVS TO THE NEW DB
+  # region: '{{ .Env.Params.mysql.aws_region | default "" }}'  # AWS region for IAM authentication (required when use_iam is True)
+  # canonical_endpoint: '{{ .Env.Params.mysql.rds_canonical_endpoint | default "" }}'  # Official RDS cluster endpoint for TLS validation and IAM token generation
+  # airbnbprod_role_arn: '{{ .Env.Params.mysql.migrator.airbnbprod_role_arn | default "" }}'  # ARN of the AIRBNBPROD IAM role to assume
+  # corpinfra_role_arn: '{{ .Env.Params.mysql.migrator.corpinfra_role_arn | default "" }}'  # ARN of the CORPINFRA-PROD IAM role to assume before connecting

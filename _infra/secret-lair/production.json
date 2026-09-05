@@ -1,0 +1,29 @@
+{
+  "biztech_github.ghe_app_private_key": {
+    "kind": "aws",
+    "key": "classic/matik/production/biztech_github.ghe_app_private_key",
+    "version": "2026-03-25T23:35:43__bc35c054-b8e4-4866-8a6a-d8c31a044dc7"
+  },
+  "greenroom.api_token": {
+    "kind": "aws",
+    "key": "classic/matik/production/greenroom.api_token",
+    "version": "2026-03-25T23:35:43__b92857f6-9808-4b66-96c3-a475ce89a649"
+  },
+  "mysql.default_rds_password": {
+    "kind": "aws",
+    "key": "classic/matik/production/mysql",
+    "version": "2026-04-29T20:12:32__f1370661-5159-4f40-b6c0-c09f8db7a159",
+    "property": "default_rds_password"
+  },
+  "mysql.migrator.rds_password": {
+    "kind": "aws",
+    "key": "classic/matik/production/mysql",
+    "version": "2026-04-29T20:12:32__f1370661-5159-4f40-b6c0-c09f8db7a159",
+    "property": "migrator.rds_password"
+  },
+  "root_cause_audit.sheets_service_account": {
+    "kind": "aws",
+    "key": "classic/matik/production/root_cause_audit.sheets_service_account",
+    "version": "2026-08-05T18:18:13__3cc4bf8b-d6d0-4be9-85c9-c89d77e71669"
+  }
+}

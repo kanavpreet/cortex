@@ -1,0 +1,26 @@
+---
+
+# GitHub Enterprise (Biztech) connector
+biztech_github:
+  page_size: {{ .Env.Params.biztech_github.page_size }}  # Pagination page size
+  cutoff_date: '{{ .Env.Params.biztech_github.cutoff_date }}'  # Cutoff date for historical data fetching
+  tracker_lookback_days: {{ .Env.Params.biztech_github.tracker_lookback_days }}  # Number of days to look back for tracker
+  max_concurrent_repos: {{ .Env.Params.biztech_github.max_concurrent_repos }}  # Max concurrent repository processing
+  repo_activity_buffer_minutes: {{ .Env.Params.biztech_github.repo_activity_buffer_minutes }}  # Minutes subtracted from the per-org crawl watermark to absorb clock skew
+  ingestible_comment_bots: '{{ .Env.Params.biztech_github.ingestible_comment_bots }}'  # Comma-separated bot logins whose PR comments are ingested
+  jenkins_review_summary_title: '{{ .Env.Params.biztech_github.jenkins_review_summary_title }}'  # Title substring that keeps a jenkins-prod comment
+  ghe_app_private_key_file_name: {{ .Env.Params.biztech_github.ghe_app_private_key_file_name }}  # GitHub App private key file name
+  ghe_app_private_key: '{{ .App.Secrets.biztech_github.ghe_app_private_key | default "" }}'  # GitHub App private key content
+  ghe_base_url: {{ .Env.Params.biztech_github.ghe_base_url }}  # GitHub Enterprise base URL (host only)
+  ghe_api_path: {{ .Env.Params.biztech_github.ghe_api_path }}  # GitHub Enterprise REST API path
+  ghe_upload_path: {{ .Env.Params.biztech_github.ghe_upload_path }}  # GitHub Enterprise upload API path
+  ghe_app_client_id: {{ .Env.Params.biztech_github.ghe_app_client_id }}  # GitHub App client ID
+  ghe_app_installation_id: {{ .Env.Params.biztech_github.ghe_app_installation_id }}  # GitHub App installation ID
+  ghe_app_id: {{ .Env.Params.biztech_github.ghe_app_id }}  # GitHub App ID
+  ghe_pr_summary_prompt: '{{ .Env.Params.biztech_github.ghe_pr_summary_prompt }}'  # LLM prompt for generating PR summaries
+  facade_model: {{ .Env.Params.facade.default_model }}  # LLM model to use for Facade calls
+  sqs_queue_url: {{ .Env.Params.scribe.low_priority.sqs_queue_url }}  # SQS queue URL for dispatching GitHub events
+  sqs_queue_region: 'us-east-1'  # AWS region for the SQS queue
+
+artifactory:
+  base_url: {{ .Env.Params.artifactory.base_url }}

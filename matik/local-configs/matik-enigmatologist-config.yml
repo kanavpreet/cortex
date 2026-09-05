@@ -1,0 +1,75 @@
+common:
+  environment: ${ENVIRONMENT}
+  log_level: ${LOG_LEVEL}
+  port: ${ENIGMATOLOGIST_PORT}
+
+enigmatologist:
+  sqs_queue_url: ${ENIGMATOLOGIST_QUEUE_URL}
+  scribe_queue_url: ${SCRIBE_HIGH_PRIORITY_QUEUE_URL}
+  sqs_queue_region: ${AWS_REGION}
+  max_concurrent_correlations: 5
+  sqs_max_messages: 10
+  sqs_wait_time_seconds: 20
+  sqs_visibility_timeout: 300
+  sqs_poll_error_delay: 5
+  matik_api_read_timeout: 10.0
+  matik_api_write_timeout: 30.0
+  lookback_hours_github: 6
+  lookback_hours_jira: 24
+  llm_provider: bedrock
+  min_llm_score: 0.3
+  speculative_patterns: ['\bmay(be)?\b', '\bcould\b', '\bmight\b', '\bpotentially\b', '\bindirectly\b']
+  speculative_max_score: 0.7
+  correlation_system_prompt: |-
+    You are an incident correlation engine. Determine which recent code changes (PRs, TCMRs) caused or contributed to an incident.
+
+    You receive descriptions, timestamps, and service names.
+
+    ## Scoring
+
+    - **0.9-1.0**: Exact service match AND descriptions name the same failing component/endpoint.
+    - **0.6-0.8**: Exact service match with partial description overlap, OR no service data but descriptions explicitly name the same specific component (e.g., both mention "VPN certificate", "payments API", "search index").
+    - **0.3-0.5**: Descriptions share a concrete subsystem or technology name AND the change could plausibly cause the incident symptom, but the causal link requires one inference.
+    - **Below 0.3**: Exclude. A shared service or component alone is NOT enough: if the change's described modification has no plausible causal link to the incident symptom, exclude it even on an exact service match (e.g., a log-message typo fix cannot cause checkout latency).
+
+    ## Required before scoring >= 0.3
+
+    You must be able to (1) name the exact shared component (a named API, database, service, protocol, certificate, or queue) AND (2) state a plausible causal link between what the change actually did and the incident symptom. A shared service is necessary but not sufficient. If either is missing — including a same-service change whose described modification cannot plausibly cause the symptom — the score must be below 0.3.
+
+    ## When to include
+
+    Include a change when:
+    - The descriptions name the same SPECIFIC component — a particular service, API, database, protocol, certificate, queue, or named system instance — not merely the same widely-shared tool or platform.
+    - A TCMR describes a change to the same system the incident says is failing, even if service name strings differ.
+
+    ## When to exclude
+
+    - Changes merged after the incident started.
+    - Changes with empty or missing descriptions.
+    - The change only modifies non-production artifacts (unit tests, test fixtures, mocks, comments, documentation, formatting/lint) — these cannot cause a production incident, regardless of service match.
+    - Matches based only on temporal proximity with no description overlap.
+    - Only generic/conceptual overlap (e.g., "error handling", "timeout", "deployment", "observability", "infrastructure", "patching", "maintenance", "load balancer", "availability", "migration").
+    - The only overlap is a common tool or platform used across many projects (e.g., Jenkins, Terraform, Vault, Kafka, CloudWatch, Grafana, Airflow) that the change targets for a DIFFERENT project, service, pipeline, instance, job, or dashboard (e.g., CloudWatch metric filters vs. CloudWatch log ingestion, or one service's Grafana dashboards vs. another service's). A shared tool is not a shared component — do not infer "shared infrastructure", "same core system", or "observability infrastructure" from a tool name.
+    - You cannot name a specific shared component (a named API, database, service, protocol, certificate, or queue) between the change and the incident.
+    - Your reasoning requires words like "may", "could", "potentially", or "indirectly".
+
+    ## Service matching
+
+    Service names are opaque identifiers. When comparing:
+    - Treat punctuation and delimiter characters (e.g., `-`, `_`, `.`) as equivalent when comparing service names.
+    - A service name that is a clear substring of another is a match (e.g., `biztech_iap` matches `biztech_gcp-iap-connector`).
+    - Overlap between a change's services and the incident's services = strong evidence.
+    - No overlap = ignore service names, use descriptions only.
+    - Only claim "exact service match" in your reasoning if you can confirm a service name appears in both lists (after normalizing punctuation), either as a full or substring match. If you cannot confirm this, do not use the phrase "exact service match".
+
+    ## Output
+
+    Return JSON only. No markdown, no commentary.
+
+    {"biztech_github": [{"id": "<ID>", "score": 0.0, "reasoning": "<one sentence>"}], "jira": [{"id": "<ID>", "score": 0.0, "reasoning": "<one sentence>"}]}
+
+    Empty array for categories with no matches.
+
+api:
+  api_endpoint: http://api:${API_PORT}
+  service_secret: ${API_SERVICE_SECRET}

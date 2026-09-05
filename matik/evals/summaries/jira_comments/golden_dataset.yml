@@ -1,0 +1,242 @@
+# ⚠️  FICTIONAL DATA — NOT REAL EVENTS.
+# Golden rows for the jira-comments summary eval. Synthetic, inspired by real Biztech
+# data; every name/id/date is invented. Some `input` rows embed fake PII so the
+# pii_safe scorer has something to catch — the `expected` gold summaries never do.
+# `input` fields mirror exactly what the enricher sends to the LLM.
+
+- input:
+    aggregated_comments: 'Pre-upgrade volume snapshots created (rollback artifact). All four volumes on
+      the prod primary (db-primary-04) and replica (db-replica-05) were snapshotted before maintenance
+      mode, tagged PreservedFor=upgrade-rollback and DoNotPrune=true. Rollback plan: restore the relevant
+      snapshot to a new volume and swap it onto the affected instance, which preserves identity versus
+      relaunching from an image. The backup cron was frozen before snapshotting. ;; Backups complete —
+      all four pre-upgrade snapshots verified. Marking this change task done.'
+  expected: 'The thread documents the pre-upgrade backup task: snapshots were taken of all four volumes
+    on the prod database primary and replica before maintenance mode, tagged for upgrade rollback and
+    do-not-prune, with the backup cron frozen beforehand. The rollback plan is to restore a snapshot to
+    a new volume and swap it onto the affected instance. The backups were verified and the task marked
+    done.'
+  metadata:
+    reference_id: TCMR-40978
+    status: Done
+    created_at: '2026-05-29'
+    project: TCMR
+
+- input:
+    aggregated_comments: The alert suppression for this change should mirror the existing downtime windows
+      for the prod and cloud-metrics tenants. ;; Scheduled downtime (SDT) added. ;; Confirmed SDT is active
+      for both the prod and cloud-metrics monitoring tenants for the maintenance window.
+  expected: The thread coordinates monitoring alert suppression for the change and confirms that scheduled
+    downtime (SDT) was added and is active for the prod and cloud-metrics monitoring tenants during the
+    maintenance window.
+  metadata:
+    reference_id: TCMR-40979
+    status: Done
+    created_at: '2026-05-29'
+    project: TCMR
+
+- input:
+    aggregated_comments: This change requires peer review. The details are in the linked change ticket;
+      the required peer approver needs to review them and, once satisfied, mark it Peer Approved. Planned
+      start and end window is a one-hour window next Wednesday. ;; Reviewed — looks good, approving.
+  expected: An automated request asked the designated peer approver to review the change detailed in the
+    linked ticket and mark it Peer Approved, noting a one-hour planned window. A reviewer responded approving
+    it.
+  metadata:
+    reference_id: TCMR-40929
+    status: Peer Approved
+    created_at: '2026-05-26'
+    project: TCMR
+
+- input:
+    aggregated_comments: 'Deployment to prod started. ;; Added a timeout and extra logging to investigate
+      why the host confirmation email link could not be found in prod. ;; Root cause: the hardcoded 5-second
+      timeout for extracting the created-at datetime is too short for a cold production page load. The
+      element itself takes longer than 5s to appear on first load; on warm loads the page is cached and
+      renders in time. Fix is to raise the timeout.'
+  expected: The team deployed to production and added a timeout and extra logging to investigate a failure
+    locating the host confirmation email link. Log analysis found the root cause to be a hardcoded 5-second
+    timeout that is too short for a cold production page load, and the fix is to raise the timeout.
+  metadata:
+    reference_id: TCMR-40985
+    status: Planning
+    created_at: '2026-06-24'
+    project: TCMR
+
+- input:
+    aggregated_comments: This change was peer approved. ;; The change request is approved and can be deployed;
+      please follow deployment best practices and ensure on-call is aware. ;; Implementation started.
+      ;; The MFA setup is complete and cloud-directory MFA is now in effect for the identity requirement.
+  expected: The change was peer-approved and approved for deployment. The team carried out the MFA setup,
+    and cloud-directory MFA is now in effect for the identity requirement.
+  metadata:
+    reference_id: TCMR-40986
+    status: CMR Complete
+    created_at: '2026-06-24'
+    project: TCMR
+
+- input:
+    aggregated_comments: This change updates a query to filter for active employees when sending anniversary
+      notifications. ;; The change request is approved and can be deployed. ;; Query change deployed to
+      pick up active employees for anniversary notifications.
+  expected: The change updates a query to filter for active employees when sending anniversary notifications.
+    It was approved and the query change was deployed.
+  metadata:
+    reference_id: TCMR-40915
+    status: Approved
+    created_at: '2026-06-18'
+    project: TCMR
+
+- input:
+    aggregated_comments: This change was peer approved. ;; The change request is approved and can be deployed;
+      please follow best practices and ensure on-call is aware. ;; Change implementation started.
+  expected: The change was peer-approved and approved for deployment, and implementation has started.
+  metadata:
+    reference_id: TCMR-40950
+    status: CMR Complete
+    created_at: '2026-06-16'
+    project: TCMR
+
+- input:
+    aggregated_comments: The build-server was upgraded to the latest LTS release. The UI is accessible,
+      jobs are running, and the build queue is healthy. ;; Per the release notes, the deprecated crumb-issuer
+      config block was removed during the upgrade.
+  expected: The build-server was upgraded to the latest LTS release; the UI is accessible, jobs are running,
+    and the build queue is healthy. As part of the upgrade the deprecated crumb-issuer configuration block
+    was removed per the release notes.
+  metadata:
+    reference_id: TCMR-40965
+    status: CMR Complete
+    created_at: '2026-06-15'
+    project: TCMR
+
+- input:
+    aggregated_comments: 'OS patching applied to the prod build-server host: no missing patches, no security-noncompliant
+      items, and no pending reboot. ;; Validation: the build-server UI is reachable, jobs are being triggered,
+      and the build queue is healthy.'
+  expected: OS patching was applied to the production build-server host with no missing patches, no security-noncompliant
+    items, and no pending reboot. Validation confirmed the build-server UI was reachable, jobs were triggering,
+    and the build queue was healthy.
+  metadata:
+    reference_id: TCMR-40960
+    status: CMR Complete
+    created_at: '2026-06-15'
+    project: TCMR
+
+- input:
+    aggregated_comments: A requester explained the change was sent for security approval in error and
+      does not need a security policy change, and repeatedly asked the assigned security on-call to approve
+      or cancel it so the workflow could complete. ;; An automated bot reassigned the issue to the current
+      security on-call. ;; Following up again to please complete the status so the change workflow can
+      progress.
+  expected: A requester explained the change was sent for security approval in error and does not require
+    a security policy change, and repeatedly asked the assigned security on-call to approve or cancel
+    it so the workflow could complete. The issue was reassigned to the current security on-call by an
+    automated bot.
+  metadata:
+    reference_id: TCMR-40954
+    status: Awaiting Approval
+    created_at: '2026-06-17'
+    project: TCMR
+
+- input:
+    aggregated_comments: Regression test event scheduled for the other pay groups. ;; This change was
+      peer approved by the reviewer. ;; The change request is approved and can be deployed.
+  expected: A regression test was scheduled for the other pay groups, the change was peer-approved, and
+    it was approved for deployment.
+  metadata:
+    reference_id: TCMR-40955
+    status: CMR Complete
+    created_at: '2026-06-15'
+    project: TCMR
+
+- input:
+    aggregated_comments: '[~jordan.maelis] please review — this requires peer approval before the planned
+      window. ;; LGTM, approved.'
+  expected: A reviewer was asked to peer-approve the change before its planned window, and a reviewer
+    approved it.
+  metadata:
+    reference_id: TCMR-40948
+    status: Peer Approved
+    created_at: '2026-06-14'
+    project: TCMR
+
+- input:
+    aggregated_comments: 'Rollout plan: deploy the host override and SSH-control agent in staged ramps
+      at 25%, 50%, and 100% over two days, with PR links for each stage. ;; Ramp has gone smoothly; we
+      have been at 50% for about two hours with few issues, so we are moving the 100% step up by an hour.
+      ;; Mostly finished and successful; see the linked doc for remaining cleanup tasks.'
+  expected: The thread tracks a staged rollout of a host override and SSH-control agent across 25%, 50%,
+    and 100% ramps over two days. The 50% stage went smoothly with few issues, prompting the team to move
+    up the 100% step, and the rollout finished mostly successfully with some remaining cleanup tasks.
+  metadata:
+    reference_id: TCMR-40936
+    status: CMR Complete
+    created_at: '2026-06-15'
+    project: TCMR
+
+- input:
+    aggregated_comments: Peer reviewers were updated; this reviewer is no longer required. ;; Peer reviewers
+      were updated; this reviewer is no longer required. ;; Change cancelled — no longer needed.
+  expected: The peer reviewer list was updated so this reviewer was no longer required, and the change
+    was ultimately cancelled as no longer needed.
+  metadata:
+    reference_id: TCMR-40902
+    status: Cancelled
+    created_at: '2026-05-07'
+    project: TCMR
+
+# --- Sparse rows: trivial single-comment threads, little to summarize. ---
+- input:
+    aggregated_comments: Production instance has been updated.
+  expected: A commenter confirmed that the production instance has been updated.
+  metadata:
+    reference_id: TCMR-40967
+    status: Done
+    created_at: '2026-06-18'
+    project: TCMR
+
+- input:
+    aggregated_comments: Production instance has been updated.
+  expected: A commenter confirmed that the production instance has been updated.
+  metadata:
+    reference_id: TCMR-40966
+    status: Done
+    created_at: '2026-06-18'
+    project: TCMR
+
+- input:
+    aggregated_comments: LGTM
+  expected: A reviewer approved the peer review, indicating the change looks good (LGTM).
+  metadata:
+    reference_id: TCMR-40931
+    status: Peer Approved
+    created_at: '2026-06-15'
+    project: TCMR
+
+- input:
+    aggregated_comments: This was done.
+  expected: A commenter confirmed that the required task was completed.
+  metadata:
+    reference_id: TCMR-40925
+    status: Done
+    created_at: '2026-06-15'
+    project: TCMR
+
+- input:
+    aggregated_comments: Approved - Lena Ortiz
+  expected: The change received engineering manager (EM) approval.
+  metadata:
+    reference_id: TCMR-40932
+    status: EM Approved
+    created_at: '2026-06-15'
+    project: TCMR
+
+- input:
+    aggregated_comments: '[~sam.okafor] lgtm!'
+  expected: A reviewer approved the peer review, indicating the change looks good.
+  metadata:
+    reference_id: TCMR-40928
+    status: Peer Approved
+    created_at: '2026-06-14'
+    project: TCMR

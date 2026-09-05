@@ -1,0 +1,107 @@
+---
+description: Deploys matik to the staging environment Only
+notifications:
+  - type: slack
+    channel: matik-internal
+stages:
+- name: deploy-to-staging-mesh
+  type: onetouchDeploy
+  parameters:
+    apps:
+    - matik-staging
+    environment: mesh
+    context: mesh-mgmt-a-ea1-us
+  timeoutMinutes: 5
+  title: Deploy mesh configs to staging
+- name: run-migrations-staging
+  type: onetouchJob
+  parameters:
+    jobName: matik-migrator
+    environment: staging
+    cell: pug
+    timeoutMinutes: 10
+    waitForCompletion: true
+  title: Run database migrations
+  dependsOn:
+    - deploy-to-staging-mesh
+- name: deploy-to-staging
+  type: cellularDeploy
+  parameters:
+    apps:
+      - matik-mcp
+      - matik-chronicler
+      - matik-api
+      - matik-enigmatologist
+      - matik-enricher
+      - matik-scribe-high
+      - matik-scribe-medium
+      - matik-scribe-low
+    environment: staging
+    cells:
+      - pug
+      - taz
+      - yun
+    rollout:
+      strategy: bluegreen
+      params:
+        pauseSeconds: 300 # 5 minutes
+  timeoutMinutes: 15
+  title: Deploy to Staging
+  dependsOn:
+    - run-migrations-staging
+    - deploy-to-staging-mesh
+- name: deploy-to-staging-jobs
+  type: cellularDeploy
+  parameters:
+    apps:
+      - matik-historian-biztech-github
+      - matik-historian-incidentio
+      - matik-historian-jira
+      - matik-audit-root-cause
+    environment: staging
+    #Cronjobs should only be deployed to a single cell to avoid duplicate runs
+    cells:
+      - pug
+  title: Deploy Jobs to Staging
+  dependsOn:
+    - run-migrations-staging
+    - deploy-to-staging-mesh
+# - name: integration-tests-pug
+#   type: integrationTests
+#   parameters:
+#     environment: staging
+#     context: m-n-pug
+#     jobs:
+#       - matik-integration-tests
+#     cells:
+#       - pug
+#   timeoutMinutes: 15
+#   title: Run integration tests Pug
+#   dependsOn:
+#     - deploy-to-staging
+# - name: integration-tests-taz
+#   type: integrationTests
+#   parameters:
+#     environment: staging
+#     context: m-o-taz
+#     jobs:
+#       - matik-integration-tests
+#     cells:
+#       - taz
+#   timeoutMinutes: 15
+#   title: Run integration tests Taz
+#   dependsOn:
+#     - deploy-to-staging
+# - name: integration-tests-yun
+#   type: integrationTests
+#   parameters:
+#     environment: staging
+#     context: m-p-yun
+#     jobs:
+#       - matik-integration-tests
+#     cells:
+#       - yun
+#   timeoutMinutes: 15
+#   title: Run integration tests Yun
+#   dependsOn:
+#     - deploy-to-staging

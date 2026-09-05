@@ -1,0 +1,11 @@
+---
+# Bedrock (LLM Fusion Hub AWS Bedrock proxy) configuration
+# This is to be used only for local development.
+
+bedrock:
+  base_url: https://llm-fusion-hub.a.musta.ch/api/v2/proxy/aws/bedrock
+  region: us-west-2
+  default_model: global.anthropic.claude-sonnet-4-20250514-v1:0
+  max_tokens: 4096
+  max_retries: 3
+  backoff_delays: [10.0, 20.0, 40.0]

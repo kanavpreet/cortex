@@ -1,0 +1,16 @@
+---
+# Common configuration for Matik MCP Server
+# This is to be used only for local development via docker-compose.
+
+common:
+  environment: ${ENVIRONMENT}
+  log_level: DEBUG
+  port: 8090
+
+api:
+  api_endpoint: http://api:${API_PORT}
+  service_secret: ${API_SERVICE_SECRET}
+
+mcp:
+  spec_refresh_interval_minutes: 5
+  http_session_idle_timeout_seconds: 1800

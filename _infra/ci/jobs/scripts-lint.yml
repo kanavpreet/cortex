@@ -1,0 +1,48 @@
+---
+# Scripts Python lint job - runs ruff linter and mypy type checker
+dockerfile: "../Dockerfile"
+
+steps:
+  ########### Install Dependencies ##############
+  - type: run
+    label: Install dependencies
+    command: |
+      set -euxo pipefail
+      cd scripts
+      uv sync --group dev
+
+  ########### Run Python Linter ##############
+  - type: run
+    label: Run ruff linter
+    command: |
+      set -euxo pipefail
+      cd scripts
+      uv run ruff check .
+
+  ########### Run Type Checker ##############
+  - type: run
+    label: Run mypy type checker
+    command: |
+      set -euxo pipefail
+      cd scripts
+      uv run mypy .
+
+  # - type: run
+  #   label: Run pyright type checker
+  #   command: |
+  #     set -euxo pipefail
+  #     cd scripts
+  #     uv run pyright .
+
+  - type: run
+    label: Generate failure banner
+    id: scripts-lint-banner
+    when: on_failure
+    command: |
+      echo '{ "style": "error", "body": "**Scripts Lint/Type check failed!**<br/>Please fix the issues by running these commands locally:<br/>- `cd scripts && uv run ruff check .` (linting)<br/>- `cd scripts && uv run mypy .` (type checking)<br/>**See the CI output above for detailed error reports.**" }'
+
+  - type: banner
+    label: Display failure banner
+    banner_json: "{{scripts-lint-banner}}"
+    when: on_failure
+    banner_id: scripts-lint-failure

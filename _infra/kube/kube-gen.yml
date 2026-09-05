@@ -1,0 +1,862 @@
+---
+version: 102.1.0
+
+# Documentation: https://developers.a.musta.ch/docs/default/component/kube-gen/kube-gen/about/
+project:
+  name: matik
+
+channel: stable
+automerge: immediately
+notifications: ptal
+
+common:
+  all:
+    params:
+      secret-lair:
+        sets:
+        - common
+      port: 8080
+      # See https://developers.airbnb.tools/projects/observability-docs/docs/logging/limits
+      # for an overview of logging limits.
+      logging_rate_limit_per_pod: 10
+      # These params use non-standard naming (camelCase) because external pipeline
+      # tools have these references hardcoded: loggingEndpoint
+      loggingEndpoint: logs-shared-beech
+      # New services will not send traces to Datadog by end of Q1 2025
+      upshot:
+        agent:
+          datadog:
+            enabled: false
+      # The shared pod-default IAM role provides basic access in AWS. If your
+      # application needs more permissions, or to use SecretLair or Bagpiper
+      # secrets, use project-specific IAM roles, like <project>-production and
+      # <project>-staging. You can give permissions to the IAM roles in
+      # Terrarium. See https://air.bb/onetouch-aws for instructions.
+
+      # IAM ROLE IS AN EXCEPTION FOR NAMING CONVENTION. Other tools we cannot control in the pipeline have the reference hardcoded as iamRole
+      iamRole: pod-default
+      dispatcher:
+        frequency_seconds: 300
+      mcp:
+        spec_refresh_interval_minutes: 5
+        http_session_idle_timeout_seconds: 1800
+      mysql:
+        rds_endpoint: biztech-master.proxysql-production
+        rds_database: matik_sandbox
+        default_rds_username: matik_sandbox
+        use_iam: false
+        scribe:
+          max_open_conns: 400
+          max_idle_conns: 200
+          conn_max_idle_time_minutes: 5
+        api:
+          max_open_conns: 400
+          max_idle_conns: 200
+          conn_max_idle_time_minutes: 5
+        migrator:
+          rds_username: matik_migr_sandb
+      jira:
+        base_url: https://jirarest.airbnb.biz
+        tcmr_jql_enabled: true
+        tcmr_jql: 'project = TCMR AND [REPLACE BATCH DATES] ORDER BY created DESC'
+        operational_jql_enabled: false # To enable, set to true and provide a valid JQL query in operational_jql
+        operational_jql: 'Placeholder for operational tickets JQL' # To be updated when enabling operational tickets crawler
+        pagination_max_results: 200
+        lookback_days: 90 # Look back 3 months by default
+        llm_description_prompt: |-
+          You are a Jira Issue Description Analyzer.
+          Your task is to process Jira issue descriptions with the following requirements:
+          1. PII Scrubbing: Remove or redact any Personally Identifiable Information (PII) including email addresses, phone numbers, names of individuals (unless they are public figures), IP addresses, personal addresses, social security numbers or employee IDs, and any other sensitive personal data.
+          2. Summary Generation: Create a concise, human-readable summary that captures the main purpose of the Jira issue and highlights the key problem, request, or change described. The summary must be written in a single paragraph, use plain text only with no markdown, no bullet points, and no special formatting, and be clear and to the point.
+          3. Output Format: Return your response ONLY as a plain string.
+        llm_comments_prompt: |-
+          You are a Jira Issue Description Analyzer.
+          Your task is to process Jira issue comments with the following requirements:
+          1. PII Scrubbing: Remove or redact any Personally Identifiable Information (PII) including email addresses, phone numbers, names of individuals (unless they are public figures), IP addresses, personal addresses, social security numbers or employee IDs, and any other sensitive personal data.
+          2. Summary Generation: Create a concise, human-readable summary that captures the main purpose of the Jira comments and highlights the key problem, request, or change described. The summary must be written in a single paragraph, use plain text only with no markdown, no bullet points, and no special formatting, and be clear and to the point.
+          3. Output Format: Return your response ONLY as a plain string.
+        client_timeout: 300 # Timeout for Jira API calls in seconds (default: 300 seconds or 5 minutes)
+        catch_up_min_gap_minutes: 10 # Minimum gap in minutes before triggering a catch-up batch instead of switching to lookback
+      biztech_github:
+        ghe_base_url: https://github.airbnb.biz
+        ghe_api_path: /api/v3
+        ghe_upload_path: /api/uploads
+        ghe_app_client_id: Iv1.3f7189467b4e23bc
+        ghe_app_installation_id: 53
+        ghe_app_id: 51
+        ghe_app_private_key_file_name: ghe_private_key.pem
+        ghe_pr_summary_prompt: |-
+          You are a Pull Request Description Analyzer.
+          Your task is to process pull request descriptions with the following requirements:
+          1. PII Scrubbing: Remove or redact any Personally Identifiable Information (PII) including: Email addresses, Phone numbers, Names of individuals (unless they are public figures or the PR author), IP addresses, Personal addresses, Social security numbers or employee IDs, Any other sensitive personal data.
+          2. Summary Generation: Create a concise, human-readable summary that: Captures the main purpose of the pull request, Highlights key changes or features, Is written in a single paragraph, Uses plain text only (no markdown, no bullet points, no special formatting), Is clear and to the point.
+          3. Output Format: Return your response ONLY as a plain string.
+        org_name: Airbnb-ITX
+        page_size: 100
+        cutoff_date: "2026-01-01T00:00:00Z"
+        tracker_lookback_days: 30
+        max_concurrent_repos: 5
+        repo_activity_buffer_minutes: 15 # Minutes subtracted from the per-org crawl watermark to absorb clock skew
+        ingestible_comment_bots: jenkins-prod,spacelift-prod # Comma-separated bot logins whose PR comments are ingested
+        jenkins_review_summary_title: Review Summary # Title substring that keeps a jenkins-prod comment
+      # LLM Fusion Hub (Facade) configuration (override per environment)
+      facade:
+        resource_bucket: production
+        default_model: matik-sandbox-gpt-5
+        api_version: 2024-12-01-preview
+        base_url: http://llm-fusion-hub-staging.llm-fusion-hub-staging:11000/api/v2/proxy/azure/oai
+      # AWS Bedrock client configuration
+      bedrock:
+        base_url: http://llm-fusion-hub-staging.llm-fusion-hub-staging:11000/api/v2/proxy/aws/bedrock
+        region: us-west-2
+        default_model: global.anthropic.claude-sonnet-4-20250514-v1:0
+        max_tokens: 4096
+        max_retries: 3
+        backoff_delays: [10.0, 20.0, 40.0]
+      # Enigmatologist worker configuration
+      enigmatologist:
+        sqs_queue_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-enig-triggers-sandbox-queue"
+        sqs_queue_region: us-east-1
+        max_concurrent_correlations: 5
+        sqs_max_messages: 10
+        sqs_wait_time_seconds: 20
+        sqs_visibility_timeout: 300
+        sqs_poll_error_delay: 5
+        matik_api_read_timeout: 10.0
+        matik_api_write_timeout: 30.0
+        lookback_hours_github: 6
+        lookback_hours_jira: 24
+        llm_provider: bedrock
+        min_llm_score: 0.3
+        speculative_patterns: "['\\bmay(be)?\\b', '\\bcould\\b', '\\bmight\\b', '\\bpotentially\\b', '\\bindirectly\\b']"
+        speculative_max_score: 0.7
+        correlation_system_prompt: |-
+          You are an incident correlation engine. Determine which recent code changes (PRs, TCMRs) caused or contributed to an incident.
+
+          You receive descriptions, timestamps, and service names.
+
+          ## Scoring
+
+          - **0.9-1.0**: Exact service match AND descriptions name the same failing component/endpoint.
+          - **0.6-0.8**: Exact service match with partial description overlap, OR no service data but descriptions explicitly name the same specific component (e.g., both mention "VPN certificate", "payments API", "search index").
+          - **0.3-0.5**: Descriptions share a concrete subsystem or technology name AND the change could plausibly cause the incident symptom, but the causal link requires one inference.
+          - **Below 0.3**: Exclude. A shared service or component alone is NOT enough: if the change's described modification has no plausible causal link to the incident symptom, exclude it even on an exact service match (e.g., a log-message typo fix cannot cause checkout latency).
+
+          ## Required before scoring >= 0.3
+
+          You must be able to (1) name the exact shared component (a named API, database, service, protocol, certificate, or queue) AND (2) state a plausible causal link between what the change actually did and the incident symptom. A shared service is necessary but not sufficient. If either is missing — including a same-service change whose described modification cannot plausibly cause the symptom — the score must be below 0.3.
+
+          ## When to include
+
+          Include a change when:
+          - The descriptions name the same SPECIFIC component — a particular service, API, database, protocol, certificate, queue, or named system instance — not merely the same widely-shared tool or platform.
+          - A TCMR describes a change to the same system the incident says is failing, even if service name strings differ.
+
+          ## When to exclude
+
+          - Changes merged after the incident started.
+          - Changes with empty or missing descriptions.
+          - The change only modifies non-production artifacts (unit tests, test fixtures, mocks, comments, documentation, formatting/lint) — these cannot cause a production incident, regardless of service match.
+          - Matches based only on temporal proximity with no description overlap.
+          - Only generic/conceptual overlap (e.g., "error handling", "timeout", "deployment", "observability", "infrastructure", "patching", "maintenance", "load balancer", "availability", "migration").
+          - The only overlap is a common tool or platform used across many projects (e.g., Jenkins, Terraform, Vault, Kafka, CloudWatch, Grafana, Airflow) that the change targets for a DIFFERENT project, service, pipeline, instance, job, or dashboard (e.g., CloudWatch metric filters vs. CloudWatch log ingestion, or one service's Grafana dashboards vs. another service's). A shared tool is not a shared component — do not infer "shared infrastructure", "same core system", or "observability infrastructure" from a tool name.
+          - You cannot name a specific shared component (a named API, database, service, protocol, certificate, or queue) between the change and the incident.
+          - Your reasoning requires words like "may", "could", "potentially", or "indirectly".
+
+          ## Service matching
+
+          Service names are opaque identifiers. When comparing:
+          - Treat punctuation and delimiter characters (e.g., `-`, `_`, `.`) as equivalent when comparing service names.
+          - A service name that is a clear substring of another is a match (e.g., `biztech_iap` matches `biztech_gcp-iap-connector`).
+          - Overlap between a change's services and the incident's services = strong evidence.
+          - No overlap = ignore service names, use descriptions only.
+          - Only claim "exact service match" in your reasoning if you can confirm a service name appears in both lists (after normalizing punctuation), either as a full or substring match. If you cannot confirm this, do not use the phrase "exact service match".
+
+          ## Output
+
+          Return JSON only. No markdown, no commentary.
+
+          {"biztech_github": [{"id": "<ID>", "score": 0.0, "reasoning": "<one sentence>"}], "jira": [{"id": "<ID>", "score": 0.0, "reasoning": "<one sentence>"}]}
+
+          Empty array for categories with no matches.
+
+      # Enricher worker configuration
+      enricher:
+        port: 8085
+        # TODO: provision these queues per environment and update URLs accordingly
+        enricher_queue_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-enr-enrichment-sandbox-queue"
+        enricher_dlq_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-enr-enrichment-sandbox-dlq"
+        sqs_queue_region: us-east-1
+        sqs_max_messages: 10
+        sqs_wait_time_seconds: 20
+        sqs_poll_error_delay: 5
+        max_concurrent_llm_calls: 20
+        visibility_timeout_seconds: 300
+        hash_cache_ttl_seconds: 2592000
+        hash_cache_max_size: 50000
+        general_prompt: |
+          Your task is to produce a single summary of the provided content, following these requirements:
+          1. PII Scrubbing: Remove or redact any personally identifiable information (PII)
+             such as names, email addresses, phone numbers, and other sensitive data; refer to people by role instead.
+          2. Summary Generation: {source_instructions}
+
+          Output ONLY the final summary as plain text — no labels, headings, section titles, preamble,
+          or intermediate steps. Apply the PII scrubbing within the summary itself; do not output the
+          scrubbed input separately.
+
+          Base the summary only on what the content explicitly states — do not infer, assume, or
+          invent details, and do not assert the absence of things (e.g., do not add "no blockers
+          were identified" or describe next steps that are not stated). Match the length to the
+          available content; a single sentence is appropriate for sparse content. Do not pad.
+        source_mappings:
+          incidentio_root_cause_prompt: |
+            You are an expert in extracting root causes from incident descriptions.
+            Analyze the incident summary and resolution statement and provide a concise root cause analysis.
+            Focus on the technical cause, affected systems, and contributing factors.
+          incidentio_description_prompt: |
+            You are an incident description summarizer.
+            Given the incident name and summary, produce a concise description of what happened.
+            Focus on the affected systems, the nature of the failure, and the business impact.
+            This description is used for automated root cause correlation.
+          ghe_pr_prompt: |
+            You are a Pull Request Analyzer.
+            The input is formatted as "<title>:::<description>:::comments:<comments
+            separated by ':::'>".
+            Summarize the purpose and impact of the pull request using its title,
+            description, and reviewer conversation comments.
+            Identify the key changes, affected components, the motivation behind them,
+            and any notable concerns or decisions raised in the discussion.
+            The summary should read as a changelog entry.
+          jira_description_prompt: |
+            You are a Jira Issue Description Analyzer.
+            Capture the core problem or request described in the issue.
+            Include business impact, affected systems, or desired outcome only if the description explicitly states them.
+          jira_comments_prompt: |
+            You are a Jira Issue Comments Analyzer.
+            Summarize the discussion thread from these Jira issue comments.
+            Highlight key decisions made, blockers identified, and the current status.
+          incident_channel_summary_prompt: |
+            You are an incident channel summarizer.
+            Summarize the incident's raw Slack channel content in a single
+            paragraph, focusing on the problem and its causes, the impact,
+            and the current investigation status.
+      api:
+        # Use PQDN. Documentation: https://developers.a.musta.ch/docs/default/component/airmesh/reference/naming/#service-name-pqdnfqdn
+        api_endpoint: http://matik-api-sandbox.matik-sandbox:8080
+        # Phase 1c: service-to-service request signing is enforced (401s on
+        # an invalid/missing signature). Validated in shadow mode first via
+        # scripts/service_signature_tester and matik_api_service_signature_checks_total
+        # before this was flipped to true. If service_secret is ever unset
+        # for this environment, the check becomes a no-op regardless of
+        # this value (see ApiConfig.service_secret).
+        enforce_service_signature: true
+      greenroom:
+        host: developers.a.musta.ch
+      # Incident.io API configuration
+      incidentio:
+        base_url: https://api.incident.io
+        page_size: 100
+        max_retries: 3
+        timeout: 30
+        backoff_delays: [2.0, 4.0, 8.0]
+        start_date: "2026-01-01"
+        lookback_days: 1
+        write_batch_size: 50
+        consumer_timeout_seconds: 60
+        max_concurrent_llm_calls: 10
+        root_cause_prompt: |-
+          You are an expert in extracting the root cause from an incident description.
+          Your task is to process incident descriptions with the following requirements:
+          1. PII Scrubbing: Remove or redact any Personally Identifiable Information (PII) including email addresses, phone numbers, names of individuals (unless they are public figures), IP addresses, personal addresses, social security numbers or employee IDs, and any other sensitive personal data.
+          2. Root Cause Summary Generation: Create a concise, human-readable, easy to understand, summary that captures the root cause of the incident. The summary must be written in a single paragraph, use plain text only with no markdown, no bullet points, and no special formatting, and be clear and very concise without losing key information.
+          3. Focus on the root cause and effect only, not the resolution
+          4. Output Format: Return your response ONLY as a plain string.
+        description_prompt: |-
+          You are an incident resolution summarizer.
+          Your task is to process incident descriptions with the following requirements:
+          1. PII Scrubbing: Remove or redact any Personally Identifiable Information (PII) including email addresses, phone numbers, names of individuals (unless they are public figures), IP addresses, personal addresses, social security numbers or employee IDs, and any other sensitive personal data.
+          2. Summary Generation: Create a concise, human-readable, easy to understand, resolution summary that captures the resolution described. The summary must be written in a single paragraph, use plain text only with no markdown, no bullet points, and no special formatting, and be clear and very concise without losing key information.
+          3. You will be given two paragraphs, an overall summary of the incident and the resolution. Use both to extract a well defined resolution summary. Make sure to only focus on the resolution.
+          4. Output Format: Return your response ONLY as a plain string.
+        # BizTech incidents
+        incident_type_ids: ["01HDCV644PMEQQTNKB4MNKTMSM"]
+      # Root Cause Coverage Audit: daily batch job, no crawler-specific params needed
+      root_cause_audit:
+        job_cron_expression: '0 6 * * *' # Daily at 06:00 UTC, after the prior day's incidents have settled
+        lookback_hours: 24
+        investigation_window_minutes: 20
+        llm_provider: facade
+        # Must mirror enigmatologist's own min_llm_score/speculative_patterns/
+        # speculative_max_score above -- production's assign_correlations_by_llm
+        # node drops candidates below this same threshold before persisting
+        # them, so BraintrustClient re-applies it when reading raw Braintrust
+        # traces back, or investigation-time correlations would include
+        # candidates the LLM considered and explicitly rejected.
+        min_llm_score: 0.3
+        speculative_patterns: "['\\bmay(be)?\\b', '\\bcould\\b', '\\bmight\\b', '\\bpotentially\\b', '\\bindirectly\\b']"
+        speculative_max_score: 0.7
+        # The audit's target environment for Braintrust correlation read-back --
+        # independent of which environment the audit job itself runs in (all
+        # three share one Braintrust project, see braintrust-btql-from-k8s.md).
+        # Override per-environment only when deliberately testing against
+        # that environment's own traces (e.g. sandbox -> "sandbox").
+        braintrust_trace_environment: production
+        spreadsheet_id: "1ubO5lEca1gJh-_VJnWAzY4ycVhssVKtk-8ZRlUBW9LM"
+        worksheet_name: "incidents"
+        correlations_worksheet_name: "correlations"
+        ground_truth_extraction_prompt: |-
+          You are analyzing an Airbnb reliability incident to find its confirmed root cause.
+          You will be given the incident's summary, chronological updates, and Slack channel
+          summary. Your task is to extract the confirmed root cause with the following
+          requirements:
+          1. change_related: true if the incident was caused by a change (a deploy, PR,
+             config change, or infrastructure change), false otherwise (e.g. vendor outage,
+             hardware failure, external dependency).
+          2. ownership: "airbnb" if an Airbnb-owned change caused it, "vendor" if a
+             third-party/vendor change or outage caused it, "unknown" if unclear.
+          3. cited_identifier: the exact PR URL, PR number, or TCMR ticket ID quoted
+             VERBATIM from the source text, only if it is explicitly named as the cause.
+             Never paraphrase or infer. A citation of the fix/remediation (e.g. "we opened
+             PR #53 to fix this") is not a citation of the cause. Some incidents describe a
+             chain of causation: a PR/TCMR whose change directly triggered the incident,
+             followed by a deeper explanation of why that change had that effect (e.g. a
+             pre-existing bug or an earlier, unrelated change it exposed). In that case,
+             cite the PR/TCMR that directly triggered the incident, not the deeper
+             explanation -- unless that deeper explanation itself names a different
+             resolvable PR/TCMR as the actual change that caused the incident, in which
+             case cite that one instead. Return null unless the text explicitly says an
+             identifier caused the incident.
+          4. quote_span: the exact source sentence containing the citation, or null if
+             cited_identifier is null.
+          5. source_traceable: even without a specific PR/TCMR citation, is there some
+             external source that could still be checked for this root cause? true if
+             it's a vendor outage reflected on a public status page, or if
+             cited_identifier is non-null. false if it's an untracked internal change
+             (e.g. a manual/undocumented change), a hardware failure, or performance
+             degradation with no external record. null if genuinely ambiguous (e.g. an
+             unplanned power outage) -- do not guess, leave it for a human to decide.
+          6. reasoning: one sentence explaining your answer.
+          Output Format: Return ONLY a JSON object with these six keys: change_related,
+          ownership, cited_identifier, quote_span, source_traceable, reasoning. No
+          markdown formatting, no code fences, no extra text.
+      scribe:
+        high_priority:
+          sqs_queue_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-high-sandbox-queue"
+          sqs_dlq_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-high-sandbox-dlq"
+          sqs_wait_time_seconds: 1
+          max_concurrent_writes: 15
+          batch_max_messages: 25
+          batch_flush_interval_ms: 500
+        medium_priority:
+          sqs_queue_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-medium-sandbox-queue"
+          sqs_dlq_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-medium-sandbox-dlq"
+          sqs_wait_time_seconds: 5
+          max_concurrent_writes: 10
+          batch_max_messages: 50
+          batch_flush_interval_ms: 2000
+        low_priority:
+          sqs_queue_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-low-sandbox-queue"
+          sqs_dlq_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-low-sandbox-dlq"
+          sqs_wait_time_seconds: 20
+          max_concurrent_writes: 5
+          batch_max_messages: 100
+          batch_flush_interval_ms: 5000
+        sqs_queue_region: "us-east-1"
+        sqs_max_messages: 10
+        sqs_visibility_timeout: 300
+        sqs_poll_error_delay: 5
+        enrichment_base_not_found_delay: 600
+      # Chronicler — long-running Kafka consumer that reads Yoyo callback events
+      # and publishes to the Scribe HP queue + Enricher queue. All environments
+      # consume from kafka-prod-a (Yoyo publishes there regardless of env).
+      chronicler:
+        kafka:
+          bootstrap_servers: "kafka-prod-a.kafka-prod-a:19092"
+          group_id: "matik-chronicler"
+          auto_offset_reset: "latest"
+          poll_timeout_seconds: 1.0
+          topics:
+          - yoyo.callback.matik_ghe_webhook_events
+          - yoyo.callback.matik_jira_webhook_events
+          - yoyo.callback.matik_incidentio_webhook_events
+          - yoyo.callback.matik_generic_webhook_events
+      # Telescope Metrics Configuration
+      telescope:
+        enabled: true
+        tenant_id: "matik"
+        push_interval_seconds: 15
+        otel_endpoint: 127.0.0.1:4318
+      # LLM Tracing Configuration - traces LLM calls to Braintrust via GenAI Studio for Loki passive monitoring.
+      llm_tracing:
+        enabled: false
+        braintrust_project_id: "83609831-3743-484e-ab37-172432a384ab"
+        capture_content: true
+      otel_collector_istio_proxy_sample_limit: "10000"
+      artifactory:
+        base_url: https://artifactory.airbnb.biz/artifactory
+      # Connector configurations
+      connector_conf:
+        incidentio_incidents:
+          name: incidentio_incidents
+          enabled: true
+          frequency: 5m
+          page_size: 100
+        jira_tcmrs:
+          name: jira_tcmrs
+          enabled: true
+          frequency: 50m
+          page_size: 200
+        jira_ops_tickets:
+          name: jira_ops_tickets
+          # Currently disabled; to enable, set to true and provide operational_jql in jira params
+          enabled: false
+          frequency: 5m
+          page_size: 200
+          tracker_lookback_months: 5
+
+
+  production:
+    params:
+      # These params use non-standard naming (camelCase) because external pipeline
+      # tools have these references hardcoded:
+      # - iamRole, secretsDatabagName
+      iamRole: matik-production
+      secretsDatabagName: NOT_USED_AFTER_SECRET_LAIR_MIGRATION
+      facade:
+        base_url: http://llm-fusion-hub-production.llm-fusion-hub-production:11000/api/v2/proxy/azure/oai
+        default_model: matik-production-gpt-5
+      bedrock:
+        base_url: http://llm-fusion-hub-production.llm-fusion-hub-production:11000/api/v2/proxy/aws/bedrock
+      # LLM tracing is only enabled by default in prod, tracing in sandbox and staging are manually enabled only when testing
+      llm_tracing:
+        enabled: true
+      api:
+        api_endpoint: http://matik-api-production.matik-production:8080
+        # Phase 1c: service-to-service request signing is enforced (401s on
+        # an invalid/missing signature). Validated in shadow mode via
+        # scripts/service_signature_tester and matik_api_service_signature_checks_total
+        # before this was flipped to true. If service_secret is ever unset
+        # for this environment, the check becomes a no-op regardless of
+        # this value (see ApiConfig.service_secret).
+        enforce_service_signature: false
+      greenroom:
+        host: greenroom-production.greenroom-production:7007
+      # Production-only sheet -- sandbox/staging keep sharing the "- Development"
+      # sheet set in common.all.params.
+      root_cause_audit:
+        spreadsheet_id: "1jBU88kbTW_20VQSQwZD9IyT_Ht5S_8sTK7W5ilUpRBo"
+      mysql:
+        rds_endpoint: biztech-master.proxysql-production
+        rds_database: matik_production
+        default_rds_username: matik_production
+        use_iam: false
+        scribe:
+          max_open_conns: 400
+          max_idle_conns: 200
+          conn_max_idle_time_minutes: 5
+        api:
+          max_open_conns: 400
+          max_idle_conns: 200
+          conn_max_idle_time_minutes: 5
+        migrator:
+          rds_username: matik_migr_prod
+      jira:
+        base_url: https://jirarest.airbnb.biz
+        tcmr_jql_enabled: true
+        tcmr_jql: 'project = TCMR AND [REPLACE BATCH DATES] ORDER BY created DESC'
+        operational_jql_enabled: false # To enable, set to true and provide a valid JQL query in operational_jql
+        operational_jql: 'Placeholder for operational tickets JQL' # To be updated when enabling operational tickets crawler
+        pagination_max_results: 200
+        lookback_days: 90 # Look back 3 months by default
+        llm_description_prompt: |-
+          You are a Jira Issue Description Analyzer.
+          Your task is to process Jira issue descriptions with the following requirements:
+          1. PII Scrubbing: Remove or redact any Personally Identifiable Information (PII) including email addresses, phone numbers, names of individuals (unless they are public figures), IP addresses, personal addresses, social security numbers or employee IDs, and any other sensitive personal data.
+          2. Summary Generation: Create a concise, human-readable summary that captures the main purpose of the Jira issue and highlights the key problem, request, or change described. The summary must be written in a single paragraph, use plain text only with no markdown, no bullet points, and no special formatting, and be clear and to the point.
+          3. Output Format: Return your response ONLY as a plain string.
+        llm_comments_prompt: |-
+          You are a Jira Issue Description Analyzer.
+          Your task is to process Jira issue comments with the following requirements:
+          1. PII Scrubbing: Remove or redact any Personally Identifiable Information (PII) including email addresses, phone numbers, names of individuals (unless they are public figures), IP addresses, personal addresses, social security numbers or employee IDs, and any other sensitive personal data.
+          2. Summary Generation: Create a concise, human-readable summary that captures the main purpose of the Jira comments and highlights the key problem, request, or change described. The summary must be written in a single paragraph, use plain text only with no markdown, no bullet points, and no special formatting, and be clear and to the point.
+          3. Output Format: Return your response ONLY as a plain string.
+        client_timeout: 300 # Timeout for Jira API calls in seconds (default: 300 seconds or 5 minutes)
+        catch_up_min_gap_minutes: 10 # Minimum gap in minutes before triggering a catch-up batch instead of switching to lookback
+      biztech_github:
+        ghe_base_url: https://github.airbnb.biz
+        ghe_api_path: /api/v3
+        ghe_upload_path: /api/uploads
+        ghe_app_client_id: Iv1.ef7d5d0ba111e2c7
+        ghe_app_installation_id: 59
+        ghe_app_id: 58
+        ghe_app_private_key_file_name: ghe_private_key.pem
+        ghe_pr_summary_prompt: |-
+          You are a Pull Request Description Analyzer.
+          Your task is to process pull request descriptions with the following requirements:
+          1. PII Scrubbing: Remove or redact any Personally Identifiable Information (PII) including: Email addresses, Phone numbers, Names of individuals (unless they are public figures or the PR author), IP addresses, Personal addresses, Social security numbers or employee IDs, Any other sensitive personal data.
+          2. Summary Generation: Create a concise, human-readable summary that: Captures the main purpose of the pull request, Highlights key changes or features, Is written in a single paragraph, Uses plain text only (no markdown, no bullet points, no special formatting), Is clear and to the point.
+          3. Output Format: Return your response ONLY as a plain string.
+        org_name: Airbnb-ITX
+        page_size: 100
+        # Aligned with staging/sandbox first-run backfill window.
+        cutoff_date: "2026-01-01T00:00:00Z"
+        tracker_lookback_days: 30
+        max_concurrent_repos: 5
+        repo_activity_buffer_minutes: 15 # Minutes subtracted from the per-org crawl watermark to absorb clock skew
+      incidentio:
+        base_url: https://api.incident.io
+        page_size: 100
+        max_retries: 3
+        timeout: 30
+        backoff_delays: [2.0, 4.0, 8.0]
+        # Aligned with staging/sandbox first-run backfill window.
+        start_date: "2026-01-01"
+        lookback_days: 1
+        write_batch_size: 50
+        consumer_timeout_seconds: 60
+        max_concurrent_llm_calls: 10
+        root_cause_prompt: |-
+          You are an expert in extracting the root cause from an incident description.
+          Your task is to process incident descriptions with the following requirements:
+          1. PII Scrubbing: Remove or redact any Personally Identifiable Information (PII) including email addresses, phone numbers, names of individuals (unless they are public figures), IP addresses, personal addresses, social security numbers or employee IDs, and any other sensitive personal data.
+          2. Root Cause Summary Generation: Create a concise, human-readable, easy to understand, summary that captures the root cause of the incident. The summary must be written in a single paragraph, use plain text only with no markdown, no bullet points, and no special formatting, and be clear and very concise without losing key information.
+          3. Focus on the root cause and effect only, not the resolution
+          4. Output Format: Return your response ONLY as a plain string.
+        description_prompt: |-
+          You are an incident resolution summarizer.
+          Your task is to process incident descriptions with the following requirements:
+          1. PII Scrubbing: Remove or redact any Personally Identifiable Information (PII) including email addresses, phone numbers, names of individuals (unless they are public figures), IP addresses, personal addresses, social security numbers or employee IDs, and any other sensitive personal data.
+          2. Summary Generation: Create a concise, human-readable, easy to understand, resolution summary that captures the resolution described. The summary must be written in a single paragraph, use plain text only with no markdown, no bullet points, and no special formatting, and be clear and very concise without losing key information.
+          3. You will be given two paragraphs, an overall summary of the incident and the resolution. Use both to extract a well defined resolution summary. Make sure to only focus on the resolution.
+          4. Output Format: Return your response ONLY as a plain string.
+        # BizTech incidents
+        incident_type_ids: ["01HDCV644PMEQQTNKB4MNKTMSM"]
+      enricher:
+        enricher_queue_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-enr-enrichment-production-queue"
+        enricher_dlq_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-enr-enrichment-production-dlq"
+      scribe:
+        high_priority:
+          sqs_queue_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-high-production-queue"
+          sqs_dlq_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-high-production-dlq"
+          sqs_wait_time_seconds: 1
+          max_concurrent_writes: 15
+          batch_max_messages: 25
+          batch_flush_interval_ms: 500
+        medium_priority:
+          sqs_queue_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-medium-production-queue"
+          sqs_dlq_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-medium-production-dlq"
+          sqs_wait_time_seconds: 5
+          max_concurrent_writes: 10
+          batch_max_messages: 50
+          batch_flush_interval_ms: 2000
+        low_priority:
+          sqs_queue_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-low-production-queue"
+          sqs_dlq_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-low-production-dlq"
+          sqs_wait_time_seconds: 20
+          max_concurrent_writes: 5
+          batch_max_messages: 100
+          batch_flush_interval_ms: 5000
+      enigmatologist:
+        sqs_queue_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-enig-triggers-production-queue"
+        sqs_queue_region: us-east-1
+
+  staging:
+    params:
+      # These params use non-standard naming (camelCase) because external pipeline
+      # tools have these references hardcoded:
+      # - iamRole, secretsDatabagName
+      iamRole: matik-staging
+      secretsDatabagName: NOT_USED_AFTER_SECRET_LAIR_MIGRATION
+      facade:
+        base_url: http://llm-fusion-hub-staging.llm-fusion-hub-staging:11000/api/v2/proxy/azure/oai
+        default_model: matik-staging-gpt-5
+      bedrock:
+        base_url: http://llm-fusion-hub-staging.llm-fusion-hub-staging:11000/api/v2/proxy/aws/bedrock
+      # LLM tracing is only enabled by default in prod, tracing in sandbox and staging are manually enabled only when testing
+      llm_tracing:
+        enabled: false
+      api:
+        api_endpoint: http://matik-api-staging.matik-staging:8080
+        # Phase 1c: service-to-service request signing is enforced (401s on
+        # an invalid/missing signature). Validated in shadow mode via
+        # scripts/service_signature_tester and matik_api_service_signature_checks_total
+        # before this was flipped to true. If service_secret is ever unset
+        # for this environment, the check becomes a no-op regardless of
+        # this value (see ApiConfig.service_secret).
+        enforce_service_signature: false
+      mysql:
+        rds_endpoint: biztech-master.proxysql-production
+        rds_database: matik_staging
+        default_rds_username: matik_staging
+        use_iam: false
+        scribe:
+          max_open_conns: 400
+          max_idle_conns: 200
+          conn_max_idle_time_minutes: 5
+        api:
+          max_open_conns: 400
+          max_idle_conns: 200
+          conn_max_idle_time_minutes: 5
+        migrator:
+          rds_username: matik_migr_stage
+      jira:
+        base_url: https://jirarest.airbnb.biz
+        tcmr_jql_enabled: true
+        tcmr_jql: 'project = TCMR AND [REPLACE BATCH DATES] ORDER BY created DESC'
+        operational_jql_enabled: false # To enable, set to true and provide a valid JQL query in operational_jql
+        operational_jql: 'Placeholder for operational tickets JQL' # To be updated when enabling operational tickets crawler
+        pagination_max_results: 200
+        lookback_days: 90 # Look back 3 months by default
+        llm_description_prompt: |-
+          You are a Jira Issue Description Analyzer.
+          Your task is to process Jira issue descriptions with the following requirements:
+          1. PII Scrubbing: Remove or redact any Personally Identifiable Information (PII) including email addresses, phone numbers, names of individuals (unless they are public figures), IP addresses, personal addresses, social security numbers or employee IDs, and any other sensitive personal data.
+          2. Summary Generation: Create a concise, human-readable summary that captures the main purpose of the Jira issue and highlights the key problem, request, or change described. The summary must be written in a single paragraph, use plain text only with no markdown, no bullet points, and no special formatting, and be clear and to the point.
+          3. Output Format: Return your response ONLY as a plain string.
+        llm_comments_prompt: |-
+          You are a Jira Issue Description Analyzer.
+          Your task is to process Jira issue comments with the following requirements:
+          1. PII Scrubbing: Remove or redact any Personally Identifiable Information (PII) including email addresses, phone numbers, names of individuals (unless they are public figures), IP addresses, personal addresses, social security numbers or employee IDs, and any other sensitive personal data.
+          2. Summary Generation: Create a concise, human-readable summary that captures the main purpose of the Jira comments and highlights the key problem, request, or change described. The summary must be written in a single paragraph, use plain text only with no markdown, no bullet points, and no special formatting, and be clear and to the point.
+          3. Output Format: Return your response ONLY as a plain string.
+        client_timeout: 300 # Timeout for Jira API calls in seconds (default: 300 seconds or 5 minutes)
+        catch_up_min_gap_minutes: 10 # Minimum gap in minutes before triggering a catch-up batch instead of switching to lookback
+      biztech_github:
+        ghe_base_url: https://github.airbnb.biz
+        ghe_api_path: /api/v3
+        ghe_upload_path: /api/uploads
+        ghe_app_client_id: Iv1.989fdd3194959cc6
+        ghe_app_installation_id: 58
+        ghe_app_id: 57
+        ghe_app_private_key_file_name: ghe_private_key.pem
+        ghe_pr_summary_prompt: |-
+          You are a Pull Request Description Analyzer.
+          Your task is to process pull request descriptions with the following requirements:
+          1. PII Scrubbing: Remove or redact any Personally Identifiable Information (PII) including: Email addresses, Phone numbers, Names of individuals (unless they are public figures or the PR author), IP addresses, Personal addresses, Social security numbers or employee IDs, Any other sensitive personal data.
+          2. Summary Generation: Create a concise, human-readable summary that: Captures the main purpose of the pull request, Highlights key changes or features, Is written in a single paragraph, Uses plain text only (no markdown, no bullet points, no special formatting), Is clear and to the point.
+          3. Output Format: Return your response ONLY as a plain string.
+        org_name: Airbnb-ITX
+        page_size: 100
+        # Mirror sandbox's lighter first-run backfill window (inherited common default) rather than prod's full year.
+        cutoff_date: "2026-01-01T00:00:00Z"
+        tracker_lookback_days: 30
+        max_concurrent_repos: 5
+        repo_activity_buffer_minutes: 15 # Minutes subtracted from the per-org crawl watermark to absorb clock skew
+      incidentio:
+        base_url: https://api.incident.io
+        page_size: 100
+        max_retries: 3
+        timeout: 30
+        backoff_delays: [2.0, 4.0, 8.0]
+        # Mirror sandbox's lighter first-run backfill window (inherited common default) rather than prod's full year.
+        start_date: "2026-01-01"
+        lookback_days: 1
+        write_batch_size: 50
+        consumer_timeout_seconds: 60
+        max_concurrent_llm_calls: 10
+        root_cause_prompt: |-
+          You are an expert in extracting the root cause from an incident description.
+          Your task is to process incident descriptions with the following requirements:
+          1. PII Scrubbing: Remove or redact any Personally Identifiable Information (PII) including email addresses, phone numbers, names of individuals (unless they are public figures), IP addresses, personal addresses, social security numbers or employee IDs, and any other sensitive personal data.
+          2. Root Cause Summary Generation: Create a concise, human-readable, easy to understand, summary that captures the root cause of the incident. The summary must be written in a single paragraph, use plain text only with no markdown, no bullet points, and no special formatting, and be clear and very concise without losing key information.
+          3. Focus on the root cause and effect only, not the resolution
+          4. Output Format: Return your response ONLY as a plain string.
+        description_prompt: |-
+          You are an incident resolution summarizer.
+          Your task is to process incident descriptions with the following requirements:
+          1. PII Scrubbing: Remove or redact any Personally Identifiable Information (PII) including email addresses, phone numbers, names of individuals (unless they are public figures), IP addresses, personal addresses, social security numbers or employee IDs, and any other sensitive personal data.
+          2. Summary Generation: Create a concise, human-readable, easy to understand, resolution summary that captures the resolution described. The summary must be written in a single paragraph, use plain text only with no markdown, no bullet points, and no special formatting, and be clear and very concise without losing key information.
+          3. You will be given two paragraphs, an overall summary of the incident and the resolution. Use both to extract a well defined resolution summary. Make sure to only focus on the resolution.
+          4. Output Format: Return your response ONLY as a plain string.
+        # BizTech incidents
+        incident_type_ids: ["01HDCV644PMEQQTNKB4MNKTMSM"]
+      enricher:
+        enricher_queue_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-enr-enrichment-staging-queue"
+        enricher_dlq_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-enr-enrichment-staging-dlq"
+      scribe:
+        high_priority:
+          sqs_queue_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-high-staging-queue"
+          sqs_dlq_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-high-staging-dlq"
+          sqs_wait_time_seconds: 1
+          max_concurrent_writes: 15
+          batch_max_messages: 25
+          batch_flush_interval_ms: 500
+        medium_priority:
+          sqs_queue_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-medium-staging-queue"
+          sqs_dlq_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-medium-staging-dlq"
+          sqs_wait_time_seconds: 5
+          max_concurrent_writes: 10
+          batch_max_messages: 50
+          batch_flush_interval_ms: 2000
+        low_priority:
+          sqs_queue_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-low-staging-queue"
+          sqs_dlq_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-low-staging-dlq"
+          sqs_wait_time_seconds: 20
+          max_concurrent_writes: 5
+          batch_max_messages: 100
+          batch_flush_interval_ms: 5000
+      # Chronicler — use a staging-specific group_id so staging and production
+      # consumers maintain independent offsets on the shared production Kafka topics.
+      chronicler:
+        kafka:
+          group_id: "matik-chronicler-staging"
+      enigmatologist:
+        sqs_queue_url: "https://sqs.us-east-1.amazonaws.com/172631448019/matik-enig-triggers-staging-queue"
+        sqs_queue_region: us-east-1
+      # SQS Purger configuration (staging queues to purge during reset)
+      sqspurger:
+        queue_urls:
+          # Enigmatologist
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-enig-triggers-staging-queue"
+          # Enricher
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-enr-enrichment-staging-queue"
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-enr-enrichment-staging-dlq"
+          # Scribe high-priority
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-high-staging-queue"
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-high-staging-dlq"
+          # Scribe medium-priority
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-medium-staging-queue"
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-medium-staging-dlq"
+          # Scribe low-priority
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-low-staging-queue"
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-low-staging-dlq"
+
+  sandbox:
+    params:
+      # These params use non-standard naming (camelCase) because external pipeline
+      # tools have these references hardcoded:
+      # - iamRole, secretsDatabagName, usePlaintextSecrets, disablePlaintextSecretsLogging
+      iamRole: matik-sandbox
+      secretsDatabagName: NOT_USED_AFTER_SECRET_LAIR_MIGRATION
+      usePlaintextSecrets: false
+      disablePlaintextSecretsLogging: true
+      connector_conf:
+        incidentio_incidents:
+          frequency: 60m
+        biztech_github:
+          frequency: 60m
+      mysql:
+        rds_endpoint: biztech-master.proxysql-production
+        rds_database: matik_sandbox
+        default_rds_username: matik_sandbox
+        use_iam: false
+        scribe:
+          max_open_conns: 400
+          max_idle_conns: 200
+          conn_max_idle_time_minutes: 5
+        api:
+          max_open_conns: 400
+          max_idle_conns: 200
+          conn_max_idle_time_minutes: 5
+        migrator:
+          rds_username: matik_migr_sandb
+      facade:
+        base_url: http://llm-fusion-hub-staging.llm-fusion-hub-staging:11000/api/v2/proxy/azure/oai
+        default_model: matik-sandbox-gpt-5
+      bedrock:
+        base_url: http://llm-fusion-hub-staging.llm-fusion-hub-staging:11000/api/v2/proxy/aws/bedrock
+      # LLM tracing is only enabled by default in prod, tracing in sandbox and staging are manually enabled only when testing
+      llm_tracing:
+        enabled: false
+      # Chronicler — use a sandbox-specific group_id so sandbox and production
+      # consumers maintain independent offsets on the shared production Kafka topics.
+      # Both environments consume the same events; they do not compete for partitions.
+      chronicler:
+        kafka:
+          group_id: "matik-chronicler-sandbox"
+      # SQS Purger configuration (sandbox queues to purge during reset)
+      sqspurger:
+        queue_urls:
+          # Enigmatologist
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-enig-triggers-sandbox-queue"
+          # Enricher
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-enr-enrichment-sandbox-queue"
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-enr-enrichment-sandbox-dlq"
+          # Scribe high-priority
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-high-sandbox-queue"
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-high-sandbox-dlq"
+          # Scribe medium-priority
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-medium-sandbox-queue"
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-medium-sandbox-dlq"
+          # Scribe low-priority
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-low-sandbox-queue"
+        - "https://sqs.us-east-1.amazonaws.com/172631448019/matik-scrb-low-sandbox-dlq"
+
+
+environments:
+  production:
+    cells:
+      pug: {}
+      taz: {}
+      yun: {}
+    includes:
+    - all
+    - production
+    params:
+      secret-lair:
+        sets:
+        - production
+      otelCollectorMem: 300Mi
+      otelCollectorCpu: 100m
+
+  canary:
+    cells:
+      pug: {}
+      taz: {}
+      yun: {}
+    includes:
+    - all
+    - production
+    params:
+      secret-lair:
+        sets:
+        - production
+      otelCollectorMem: 200Mi
+      otelCollectorCpu: 100m
+
+  staging:
+    params:
+      secret-lair:
+        sets:
+        - staging
+      otelCollectorMem: 400Mi
+      otelCollectorCpu: 100m
+    cells:
+      pug: {}
+      taz: {}
+      yun: {}
+    includes:
+    - all
+    - staging
+
+  sandbox:
+    canonicalEnvironment: test
+    params:
+      secret-lair:
+        sets:
+        - sandbox
+      otelCollectorMem: 400Mi
+      otelCollectorCpu: 100m
+    cells:
+      pug: {}
+    includes:
+    - all
+    - sandbox
+
+apps:
+- matik-historian-biztech-github
+- matik-historian-incidentio
+- matik-historian-jira
+- matik-api
+- matik-chronicler
+- matik-migrator
+- matik-migrator-downgrade
+- matik-mcp
+- matik-enigmatologist
+- matik-scribe-high
+- matik-scribe-medium
+- matik-scribe-low
+- matik-enricher
+- matik-dbmanager
+- matik-sqspurger
+- matik-audit-root-cause

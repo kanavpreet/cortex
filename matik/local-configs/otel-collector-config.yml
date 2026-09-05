@@ -1,0 +1,51 @@
+# OpenTelemetry Collector Configuration for Local Development
+# Metrics-only setup for Telescope integration
+
+receivers:
+  # OTLP HTTP receiver - accepts metrics from Telescope client
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # Batch processor - batches metrics before export
+  batch:
+    timeout: 10s
+    send_batch_size: 1000
+
+  # Memory limiter - prevents OOM
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+
+exporters:
+  # Prometheus exporter - exposes metrics for Prometheus to scrape
+  # Note: No namespace needed - metrics already have "matik_" prefix in their names
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+  # Debug exporter - prints metrics to console for verification
+  debug:
+    verbosity: normal
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+extensions:
+  # Health check
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+service:
+  extensions: [health_check]
+
+  pipelines:
+    # Metrics pipeline only
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [prometheus, debug]
+
+  telemetry:
+    logs:
+      level: info

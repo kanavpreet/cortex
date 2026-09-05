@@ -1,0 +1,21 @@
+---
+# Common configuration for Matik Historian
+# This is to be used only for local development via docker-compose.
+
+# Common configuration shared across services
+common:
+  environment: {{ .Env.Name }}  # Deployment environment
+  port: {{ .Env.Params.port }}  # Service port
+  log_level: INFO  # Logging level
+
+
+# API service configuration
+api:
+  api_endpoint: {{ .Env.Params.api.api_endpoint }}  # Catalog service endpoint URL
+  service_secret: '{{ .App.Secrets.api.service_secret | default "" }}'  # Phase 1c: shared secret for signing requests to matik-api
+
+
+# Greenroom/Backstage configuration
+greenroom:
+  api_token: '{{ .App.Secrets.greenroom.api_token | default "" }}'  # Greenroom API static Bearer token
+  host: {{ .Env.Params.greenroom.host }}  # Greenroom API host URL

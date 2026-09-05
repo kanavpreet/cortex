@@ -1,0 +1,17 @@
+---
+# Common configuration for Matik Historian
+# This is to be used only for local development via docker-compose.
+
+common:
+  environment: ${ENVIRONMENT}
+  log_level: ${LOG_LEVEL}
+  port: ${HISTORIAN_PORT}
+
+# API Service Configuration
+api:
+  api_endpoint: http://api:${API_PORT}
+  service_secret: ${API_SERVICE_SECRET}
+
+greenroom:
+  api_token: ${HISTORIAN_GREENROOM_API_TOKEN}
+  host: ${HISTORIAN_GREENROOM_HOST}

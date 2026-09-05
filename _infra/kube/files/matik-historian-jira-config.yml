@@ -1,0 +1,21 @@
+---
+# Jira-specific configuration for Matik Historian
+# Documentation: https://developers.a.musta.ch/docs/default/component/kube-gen/kube-gen/configs/files
+
+# JIRA API configuration
+jira:
+  base_url: {{ .Env.Params.jira.base_url }}  # JIRA REST API base URL
+  username: '{{ .App.Secrets.jira.username | default "" }}'  # JIRA username (usually service account LDAP)
+  password: '{{ .App.Secrets.jira.password | default "" }}'  # JIRA password (usually service account password)
+  tcmr_jql_enabled: {{ .Env.Params.jira.tcmr_jql_enabled }}  # Flag to enable TCMR JQL processing
+  tcmr_jql: {{ .Env.Params.jira.tcmr_jql }}  # JQL query for fetching TCMR tickets
+  operational_jql_enabled: {{ .Env.Params.jira.operational_jql_enabled }}  # Flag to enable operational JQL processing
+  operational_jql: {{ .Env.Params.jira.operational_jql }}  # JQL query for fetching operational tickets
+  pagination_max_results: {{ .Env.Params.jira.pagination_max_results }}  # Maximum results per page for pagination
+  lookback_days: {{ .Env.Params.jira.lookback_days }}  # Number of days to look back for issues
+  llm_description_prompt: '{{ .Env.Params.jira.llm_description_prompt }}'  # LLM prompt for generating issue descriptions
+  llm_comments_prompt: '{{ .Env.Params.jira.llm_comments_prompt }}'  # LLM prompt for generating issue comments
+  client_timeout: {{ .Env.Params.jira.client_timeout }}  # Timeout for JIRA API client in seconds
+  catch_up_min_gap_minutes: {{ .Env.Params.jira.catch_up_min_gap_minutes }}  # Minimum gap in minutes to trigger a catch-up batch instead of switching to lookback
+  sqs_queue_url: {{ .Env.Params.scribe.low_priority.sqs_queue_url }}  # SQS queue URL for dispatching Jira events
+  sqs_queue_region: 'us-east-1'  # AWS region for the SQS queue

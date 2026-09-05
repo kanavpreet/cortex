@@ -1,0 +1,149 @@
+---
+# Spinnaker pipeline docs: https://developers.airbnb.tools/projects/spinnaker/docs/users/managing_pipelines
+description: >
+  Scales down sandbox services and runs the DB downgrade to base, then stops.
+  Use this to quickly downgrade the schema against a specific branch (e.g. when
+  testing a migration's downgrade path, or rolling back before switching to an
+  older branch) without running the full destructive reset_sandbox pipeline
+  (no SQS purge, no redeploy). Trigger a manual execution against the branch
+  whose migration files match what's currently stamped in the DB.
+  See _infra/docs/development/reset-matik.md for the related full-reset runbook.
+
+stages:
+
+  # -------------------------------------------------------------------------
+  # Scale down — stop all services before touching the DB
+  # -------------------------------------------------------------------------
+  - name: deploy-to-sandbox-mesh-configs
+    type: onetouchDeploy
+    parameters:
+      apps:
+      - matik-sandbox
+      environment: mesh
+      context: mesh-mgmt-a-ea1-us
+    timeoutMinutes: 5
+    title: Deploy mesh configs to sandbox
+
+  - name: scale-down-scribe-high
+    type: scaleManifest
+    title: Scale down Scribe High
+    parameters:
+      application: matik-scribe-high
+      environment: sandbox
+      replicas: 0
+      context: m-n-pug
+    dependsOn:
+      - deploy-to-sandbox-mesh-configs
+
+  - name: scale-down-scribe-medium
+    type: scaleManifest
+    title: Scale down Scribe Medium
+    parameters:
+      application: matik-scribe-medium
+      environment: sandbox
+      replicas: 0
+      context: m-n-pug
+    dependsOn:
+      - deploy-to-sandbox-mesh-configs
+
+  - name: scale-down-scribe-low
+    type: scaleManifest
+    title: Scale down Scribe Low
+    parameters:
+      application: matik-scribe-low
+      environment: sandbox
+      replicas: 0
+      context: m-n-pug
+    dependsOn:
+      - deploy-to-sandbox-mesh-configs
+
+  - name: scale-down-enricher
+    type: scaleManifest
+    title: Scale down Enricher
+    parameters:
+      application: matik-enricher
+      environment: sandbox
+      replicas: 0
+      context: m-n-pug
+    dependsOn:
+      - deploy-to-sandbox-mesh-configs
+
+  - name: scale-down-enigmatologist
+    type: scaleManifest
+    title: Scale down Enigmatologist
+    parameters:
+      application: matik-enigmatologist
+      environment: sandbox
+      replicas: 0
+      context: m-n-pug
+    dependsOn:
+      - deploy-to-sandbox-mesh-configs
+
+  - name: scale-down-chronicler
+    type: scaleManifest
+    title: Scale down Chronicler
+    parameters:
+      application: matik-chronicler
+      environment: sandbox
+      replicas: 0
+      context: m-n-pug
+    dependsOn:
+      - deploy-to-sandbox-mesh-configs
+
+  - name: scale-down-api
+    type: scaleManifest
+    title: Scale down API
+    parameters:
+      application: matik-api
+      environment: sandbox
+      replicas: 0
+      context: m-n-pug
+    dependsOn:
+      - deploy-to-sandbox-mesh-configs
+
+  - name: scale-down-mcp
+    type: scaleManifest
+    title: Scale down MCP
+    parameters:
+      application: matik-mcp
+      environment: sandbox
+      replicas: 0
+      context: m-n-pug
+    dependsOn:
+      - deploy-to-sandbox-mesh-configs
+
+  # -------------------------------------------------------------------------
+  # Manual judgment — confirm before the destructive DB downgrade runs
+  # -------------------------------------------------------------------------
+
+  - name: manual-judgment-before-downgrade-sandbox
+    type: manualJudgment
+    title: Confirm database downgrade
+    instructions: >
+      This will downgrade the sandbox database schema to base, erasing all
+      data. Confirm this is intended before proceeding — there is no undo.
+    dependsOn:
+      - scale-down-scribe-high
+      - scale-down-scribe-medium
+      - scale-down-scribe-low
+      - scale-down-enricher
+      - scale-down-enigmatologist
+      - scale-down-chronicler
+      - scale-down-api
+      - scale-down-mcp
+
+  # -------------------------------------------------------------------------
+  # Downgrade migrations — clears the DB schema using this run's branch/image
+  # -------------------------------------------------------------------------
+
+  - name: downgrade-migrations-sandbox
+    type: onetouchJob
+    title: Downgrade database migrations to base
+    parameters:
+      jobName: matik-migrator-downgrade
+      environment: sandbox
+      cell: pug
+      timeoutMinutes: 10
+      waitForCompletion: true
+    dependsOn:
+      - manual-judgment-before-downgrade-sandbox

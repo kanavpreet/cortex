@@ -1,0 +1,35 @@
+---
+# Scripts Python test job - runs pytest with coverage
+dockerfile: "../Dockerfile"
+
+steps:
+  ########### Install Dependencies ##############
+  - type: run
+    label: Install dependencies
+    command: |
+      set -euxo pipefail
+      echo "Installing scripts Python dependencies..."
+      cd scripts
+      uv sync --group dev
+      echo "Dependencies installed successfully!"
+
+  ########### Run tests ##############
+  - type: run
+    label: Run pytest
+    command: |
+      set -euxo pipefail
+      cd scripts
+      uv run pytest -v --cov=. --cov-report=term
+
+  - type: run
+    label: Generate test failure banner
+    id: scripts-test-failure-banner
+    when: on_failure
+    command: |
+      echo '{ "style": "error", "body": "**Scripts Tests Failed!**<br/>Some tests did not pass successfully.<br/>**Please check the test output above for details and fix the issues.**" }'
+
+  - type: banner
+    label: Display test failure banner
+    banner_json: "{{ scripts-test-failure-banner }}"
+    when: on_failure
+    banner_id: scripts-test-failure

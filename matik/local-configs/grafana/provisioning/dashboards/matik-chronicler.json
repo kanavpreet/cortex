@@ -1,0 +1,2041 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "<div style=\"padding: 16px 24px; font-family: sans-serif;\">\n  <h1 style=\"text-align: center; font-weight: bold; margin: 0 0 8px 0;\">Chronicler Dashboard</h1>\n  <p style=\"text-align: center; color: #aaa; margin: 0 0 20px 0; font-size: 13px;\">\n    Ingestion pipeline \u2014 Kafka consumer, signature validation, transformer dispatch, SQS publish\n  </p>\n  <hr style=\"border: none; border-top: 1px solid #444; margin-bottom: 16px;\" />\n  <p style=\"margin: 0; font-size: 13px; line-height: 1.6;\">\n    Monitors the <strong>Chronicler</strong> service, which consumes Yoyo callback events from Kafka, verifies webhook HMAC / Svix signatures, transforms payloads through the per-provider registry (GitHub PR, Jira TCMR, Incident.io), and publishes sanitized base messages to the Scribe HP SQS queue and LLM enrichment requests to the Enricher SQS queue. Use this dashboard to track ingest rate per topic, verify per-provider transform outcomes, inspect signature validation results, watch downstream SQS publish health, and diagnose Kafka poll-loop latency.\n  </p>\n</div>\n<div style=\"padding: 12px 24px; font-family: sans-serif;\">\n  <div style=\"display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center;\">\n\n  <a href=\"https://grafana.a.musta.ch/goto/bfmh4d833xd6oa?orgId=1\" \n      style=\"color: #e8e8e8; background-color: #1f3a52; border: 1px solid #2e6da4; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 12px; white-space: nowrap;\">\n      \u2190 Unified Dashboard\n    </a>\n\n    <div style=\"width: 1px; height: 24px; background-color: #444; margin: 0 4px;\"></div>\n\n    <a href=\"https://grafana.a.musta.ch/goto/efmh4fpogkt1cc?orgId=1\" \n      style=\"color: #e8e8e8; background-color: #2d2d2d; border: 1px solid #444; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 12px; white-space: nowrap;\">\n      \ud83d\udcca Historians\n    </a>\n    \n      <a href=\"https://grafana.a.musta.ch/d/matik-scribe?orgId=1\" \n      style=\"color: #e8e8e8; background-color: #2d2d2d; border: 1px solid #444; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 12px; white-space: nowrap;\">\n      \u270d\ufe0f Scribe\n    </a>\n\n    <a href=\"https://grafana.a.musta.ch/d/matik-enricher-facade?orgId=1\" \n      style=\"color: #e8e8e8; background-color: #2d2d2d; border: 1px solid #444; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 12px; white-space: nowrap;\">\n      \ud83e\udd16 Enricher &amp; Facade\n    </a>\n\n    <a href=\"https://grafana.a.musta.ch/goto/afmhv1afwagw0f?orgId=1\" \n      style=\"color: #e8e8e8; background-color: #2d2d2d; border: 1px solid #444; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 12px; white-space: nowrap;\">\n      \ud83d\udcec SQS &amp; Messaging\n    </a>\n\n    <a href=\"https://grafana.a.musta.ch/goto/afmhv5hmqgxkwf?orgId=1\" \n      style=\"color: #e8e8e8; background-color: #2d2d2d; border: 1px solid #444; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 12px; white-space: nowrap;\">\n      \ud83d\udd17 Enigmatologist\n    </a>\n\n    <a href=\"https://grafana.a.musta.ch/goto/cfmhv7t7vq0hsd?orgId=1\" \n      style=\"color: #e8e8e8; background-color: #2d2d2d; border: 1px solid #444; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 12px; white-space: nowrap;\">\n      \u2699\ufe0f Infrastructure\n    </a>\n\n    <div style=\"width: 1px; height: 24px; background-color: #444; margin: 0 4px;\"></div>\n\n    <a href=\"https://grafana.a.musta.ch/goto/cfmhv8xp0p340e?orgId=1\" \n      style=\"color: #e8e8e8; background-color: #1f3a52; border: 1px solid #2e6da4; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 12px; white-space: nowrap;\">\n      \ud83e\uddea Stage Validation\n    </a>\n\n    <a href=\"https://grafana.a.musta.ch/a/watchpoint?wp=workspace[0]:monitors/grid?from=now-1h&to=now&var-project=matik\" \n      style=\"color: #e8e8e8; background-color: #1f3a52; border: 1px solid #2e6da4; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 12px; white-space: nowrap;\">\n      \ud83d\udc41 Watchpoint\n    </a>\n  </div>\n</div>",
+        "mode": "html"
+      },
+      "pluginVersion": "12.4.2",
+      "type": "text"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "id": 2,
+      "panels": [],
+      "title": "Service Health",
+      "type": "row",
+      "description": "High-level service health: ingest, success, signature failures, publish failures, Kafka poll p95, and Kafka errors at a glance."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 0.001
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(matik_chronicler_messages_received_total{deployment_environment=\"$environment\"}[5m]))",
+          "instant": false,
+          "legendFormat": "msg/s",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Ingest Rate",
+      "type": "stat",
+      "description": "Rate of Yoyo callback events the chronicler is reading off Kafka, summed across all subscribed topics (GHE, Jira, Incident.io). Orange when 0 \u2014 the consumer is silent.\n\n`matik_chronicler_messages_received_total`"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 0.001
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(matik_chronicler_messages_processed_total{deployment_environment=\"$environment\", status=\"success\"}[5m]))",
+          "instant": false,
+          "legendFormat": "msg/s",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Success Rate",
+      "type": "stat",
+      "description": "Rate of messages that finished the full pipeline successfully \u2014 signature validated (or skipped), transformer dispatched, Scribe + Enricher publishes both succeeded.\n\n`matik_chronicler_messages_processed_total{status=\"success\"}`"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 0.001
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 8
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(matik_chronicler_signature_validations_total{deployment_environment=\"$environment\", result=\"invalid\"}[5m]))",
+          "instant": false,
+          "legendFormat": "invalid/s",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Signature Failures",
+      "type": "stat",
+      "description": "Rate of inbound webhooks dropped because their HMAC / Svix signature did not validate. Non-zero here is a possible spoofing attempt or a secret rotation drift between the provider and `secret-lair`.\n\n`matik_chronicler_signature_validations_total{result=\"invalid\"}`"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 0.001
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 8
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(matik_chronicler_publish_outcome_total{deployment_environment=\"$environment\", status=\"failed\"}[5m]))",
+          "instant": false,
+          "legendFormat": "failed/s",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Publish Failures",
+      "type": "stat",
+      "description": "Rate of failed publishes to either downstream SQS queue (Scribe HP or Enricher). Failures mean the Kafka offset was NOT committed and the next poll will redeliver \u2014 sustained non-zero indicates a downstream outage.\n\n`matik_chronicler_publish_outcome_total{status=\"failed\"}`"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 13
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(matik_chronicler_kafka_poll_duration_seconds_bucket{deployment_environment=\"$environment\"}[5m])))",
+          "instant": false,
+          "legendFormat": "p95",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Kafka Poll P95 (s)",
+      "type": "stat",
+      "description": "95th-percentile wall-clock time spent inside `librdkafka.Consumer.poll()`. Idle polls hit the configured `poll_timeout_seconds` (default 1s); active polls typically return in tens of milliseconds. Sustained > 5s suggests broker / network trouble.\n\n`matik_chronicler_kafka_poll_duration_seconds_bucket`"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 0.01
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 13
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(matik_chronicler_kafka_errors_total{deployment_environment=\"$environment\"}[5m]))",
+          "instant": false,
+          "legendFormat": "errors/s",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Kafka Errors",
+      "type": "stat",
+      "description": "Rate of error frames surfaced on consumed messages (`msg.error()` non-None), broken down by Kafka error class. Includes things like `_PARTITION_EOF` (informational) as well as real failures. Investigate on sustained non-zero.\n\n`matik_chronicler_kafka_errors_total`"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "id": 9,
+      "panels": [],
+      "title": "Message Processing",
+      "type": "row",
+      "description": "Per-message processing throughput and latency, broken down by topic, provider, and terminal status."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "sum by (topic) (rate(matik_chronicler_messages_received_total{deployment_environment=\"$environment\"}[5m]))",
+          "instant": false,
+          "legendFormat": "{{topic}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Messages Received by Topic",
+      "type": "timeseries",
+      "description": "Per-topic ingest rate showing which Yoyo callback streams are flowing. Use this to confirm a specific provider's webhook traffic is reaching the consumer (e.g. after enabling a new webhook in syseng).\n\n`sum by (topic) (rate(matik_chronicler_messages_received_total))`"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "sum by (provider, status) (rate(matik_chronicler_messages_processed_total{deployment_environment=\"$environment\"}[5m]))",
+          "instant": false,
+          "legendFormat": "{{provider}} / {{status}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Processed by Provider & Status",
+      "type": "timeseries",
+      "description": "End-to-end processed counts split by provider (github / jira / incidentio) and terminal status (success, filtered, signature_failed, unknown_provider, malformed_envelope, malformed_payload, error). The single most useful panel for understanding what the consumer is actually doing with traffic.\n\n`matik_chronicler_messages_processed_total`"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 28
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.5, sum by (le, provider) (rate(matik_chronicler_message_processing_duration_seconds_bucket{deployment_environment=\"$environment\", status=\"success\"}[5m])))",
+          "instant": false,
+          "legendFormat": "{{provider}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Processing Duration P50 (s)",
+      "type": "timeseries",
+      "description": "Median per-message latency for the `success` path: poll \u2192 deserialize \u2192 signature \u2192 transform \u2192 Scribe publish \u2192 Enricher publish \u2192 commit. Per-provider so we can see if one transformer is heavier than the others."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 28
+      },
+      "id": 13,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, sum by (le, provider) (rate(matik_chronicler_message_processing_duration_seconds_bucket{deployment_environment=\"$environment\", status=\"success\"}[5m])))",
+          "instant": false,
+          "legendFormat": "{{provider}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Processing Duration P95 (s)",
+      "type": "timeseries",
+      "description": "p95 per-message latency, success path. Watch this for slow Scribe / Enricher SQS round-trips \u2014 both publishes are sync and chained, so SQS regional latency shows up directly here."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 28
+      },
+      "id": 14,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.99, sum by (le, provider) (rate(matik_chronicler_message_processing_duration_seconds_bucket{deployment_environment=\"$environment\", status=\"success\"}[5m])))",
+          "instant": false,
+          "legendFormat": "{{provider}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Processing Duration P99 (s)",
+      "type": "timeseries",
+      "description": "p99 per-message latency, success path. Tail-latency outliers: typically dominated by SQS publish retries or cold librdkafka rebalances."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "id": 15,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "sum by (status) (rate(matik_chronicler_messages_processed_total{deployment_environment=\"$environment\", status!=\"success\"}[5m]))",
+          "instant": false,
+          "legendFormat": "{{status}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Filter / Drop Breakdown",
+      "type": "timeseries",
+      "description": "Stacked rates of every non-success terminal status \u2014 `filtered`, `signature_failed`, `unknown_provider`, `malformed_envelope`, `malformed_payload`, `error`. `filtered` is expected (e.g. non-merged GHE PRs, non-TCMR Jira issues); the others are not."
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "id": 16,
+      "panels": [],
+      "title": "Signature Validation",
+      "type": "row",
+      "description": "HMAC / Svix signature validation outcomes per provider. Validates that the chronicler is correctly authenticating inbound webhooks."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 45
+      },
+      "id": 17,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "sum by (provider, result) (rate(matik_chronicler_signature_validations_total{deployment_environment=\"$environment\"}[5m]))",
+          "instant": false,
+          "legendFormat": "{{provider}} / {{result}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Validations by Provider & Result",
+      "type": "timeseries",
+      "description": "Signature-validation outcomes per provider. `valid` is the happy path. `skipped_no_secret` appears in sandbox before `secret-lair` is populated; `skipped_no_scheme` is normal for Jira (no signing scheme exists). `invalid` should be zero in steady state.\n\n`matik_chronicler_signature_validations_total`"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 45
+      },
+      "id": 18,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "sum by (provider) (rate(matik_chronicler_signature_validations_total{deployment_environment=\"$environment\", result=\"invalid\"}[5m]))",
+          "instant": false,
+          "legendFormat": "{{provider}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Invalid Signatures by Provider",
+      "type": "timeseries",
+      "description": "Just the `invalid` slice, broken out per provider, for quick alerting attribution. Sustained non-zero on a single provider points to a stale or wrong shared secret on either side."
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 53
+      },
+      "id": 19,
+      "panels": [],
+      "title": "Downstream Publish (Scribe & Enricher)",
+      "type": "row",
+      "description": "Outcomes of the two outbound SQS publishes (Scribe HP and Enricher) the chronicler performs for every successfully transformed event."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 54
+      },
+      "id": 20,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "sum by (target, status) (rate(matik_chronicler_publish_outcome_total{deployment_environment=\"$environment\"}[5m]))",
+          "instant": false,
+          "legendFormat": "{{target}} / {{status}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Publishes by Target & Status",
+      "type": "timeseries",
+      "description": "Outcome of every outbound SQS publish, labeled by target (`scribe` or `enricher`) and status (`success` or `failed`). Lets you confirm both downstream queues are accepting traffic.\n\n`matik_chronicler_publish_outcome_total`"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 54
+      },
+      "id": 21,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "sum by (target, provider) (rate(matik_chronicler_publish_outcome_total{deployment_environment=\"$environment\", status=\"failed\"}[5m]))",
+          "instant": false,
+          "legendFormat": "{{target}} / {{provider}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Publish Failures by Target & Provider",
+      "type": "timeseries",
+      "description": "Only the failed publishes, split by target + provider. Helpful for distinguishing 'Scribe queue is unhealthy' from 'Enricher publishes are bouncing on one specific provider's payload shape'."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 62
+      },
+      "id": 22,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(matik_sqs_publish_duration_seconds_bucket{deployment_environment=\"$environment\", service=\"chronicler\"}[5m])))",
+          "instant": false,
+          "legendFormat": "p95",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Scribe SQS Publish Duration P95 (s)",
+      "type": "timeseries",
+      "description": "p95 latency of the Scribe HP SQS publish call, measured by `SQSPublisherMetrics` on the publisher itself. Useful as a leading indicator for the message-processing p95 above \u2014 a Scribe regional slowdown will show up here first.\n\n`matik_sqs_publish_duration_seconds_bucket{service=\"chronicler\"}`"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 70
+      },
+      "id": 23,
+      "panels": [],
+      "title": "Kafka Consumer Health",
+      "type": "row",
+      "description": "Liveness and health signals from the underlying librdkafka consumer."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 71
+      },
+      "id": 24,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.5, sum by (le) (rate(matik_chronicler_kafka_poll_duration_seconds_bucket{deployment_environment=\"$environment\"}[5m])))",
+          "instant": false,
+          "legendFormat": "p50",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(matik_chronicler_kafka_poll_duration_seconds_bucket{deployment_environment=\"$environment\"}[5m])))",
+          "instant": false,
+          "legendFormat": "p95",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(matik_chronicler_kafka_poll_duration_seconds_bucket{deployment_environment=\"$environment\"}[5m])))",
+          "instant": false,
+          "legendFormat": "p99",
+          "range": true,
+          "refId": "C"
+        }
+      ],
+      "title": "Kafka Poll Duration P50 / P95 / P99 (s)",
+      "type": "timeseries",
+      "description": "Distribution of `consumer.poll()` durations. The p50 sits near the configured `poll_timeout_seconds` when traffic is quiet (1s by default) and drops as soon as records start arriving. Persistent p99 spikes indicate broker pressure."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P59E56B473F78D0B3"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 71
+      },
+      "id": 25,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P59E56B473F78D0B3"
+          },
+          "editorMode": "code",
+          "expr": "sum by (error_type) (rate(matik_chronicler_kafka_errors_total{deployment_environment=\"$environment\"}[5m]))",
+          "instant": false,
+          "legendFormat": "{{error_type}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Kafka Errors by Type",
+      "type": "timeseries",
+      "description": "Kafka error frames per second, labeled by error class (e.g. `_PARTITION_EOF`, `_TRANSPORT`, `_AUTHENTICATION`). The poll loop continues on these but they tell you whether the broker / AirMesh side is unhappy."
+    }
+  ],
+  "schemaVersion": 41,
+  "tags": [
+    "matik",
+    "chronicler"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "sandbox",
+          "value": "sandbox"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "P59E56B473F78D0B3"
+        },
+        "definition": "label_values(matik_chronicler_kafka_poll_duration_seconds_count, deployment_environment)",
+        "label": "Environment",
+        "name": "environment",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(matik_chronicler_kafka_poll_duration_seconds_count, deployment_environment)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      },
+      {
+        "allValue": "prod|unknown|bigid-use1|braintrust-use1|galileo-use1|prod-use1|",
+        "current": {
+          "text": "prod|unknown|bigid-use1|braintrust-use1|galileo-use1|prod-use1|",
+          "value": "prod|unknown|bigid-use1|braintrust-use1|galileo-use1|prod-use1|"
+        },
+        "includeAll": true,
+        "label": "Cellset",
+        "multi": false,
+        "name": "cellset",
+        "options": [
+          {
+            "selected": true,
+            "text": "prod",
+            "value": "prod|unknown|bigid-use1|braintrust-use1|galileo-use1|prod-use1|"
+          },
+          {
+            "selected": false,
+            "text": "Global",
+            "value": ".*"
+          },
+          {
+            "selected": false,
+            "text": "airbnb-airdev-aps1",
+            "value": "airbnb-airdev-aps1"
+          },
+          {
+            "selected": false,
+            "text": "airbnb-airdev-euw1",
+            "value": "airbnb-airdev-euw1"
+          },
+          {
+            "selected": false,
+            "text": "airbnb-airdev-use1",
+            "value": "airbnb-airdev-use1"
+          },
+          {
+            "selected": false,
+            "text": "airbnb-biztech-use1",
+            "value": "airbnb-biztech-use1"
+          },
+          {
+            "selected": false,
+            "text": "airbnb-pci-use1",
+            "value": "airbnb-pci-use1"
+          },
+          {
+            "selected": false,
+            "text": "airdev-usw2",
+            "value": "airdev-usw2"
+          },
+          {
+            "selected": false,
+            "text": "braintrust-use1",
+            "value": "braintrust-use1"
+          },
+          {
+            "selected": false,
+            "text": "dev",
+            "value": "dev"
+          },
+          {
+            "selected": false,
+            "text": "devinfratest-use2",
+            "value": "devinfratest-use2"
+          },
+          {
+            "selected": false,
+            "text": "galileo-use1",
+            "value": "galileo-use1"
+          },
+          {
+            "selected": false,
+            "text": "prod-apse1",
+            "value": "prod-apse1"
+          },
+          {
+            "selected": false,
+            "text": "prod-euw1",
+            "value": "prod-euw1"
+          },
+          {
+            "selected": false,
+            "text": "prod-use2",
+            "value": "prod-use2"
+          },
+          {
+            "selected": false,
+            "text": "test-euw1",
+            "value": "test-euw1"
+          },
+          {
+            "selected": false,
+            "text": "test-use2",
+            "value": "test-use2"
+          },
+          {
+            "selected": false,
+            "text": "test-usw2",
+            "value": "test-usw2"
+          }
+        ],
+        "query": "prod : prod|unknown|bigid-use1|braintrust-use1|galileo-use1|prod-use1|, Global : .*",
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Matik - Chronicler Dashboard",
+  "uid": "matik-chronicler",
+  "version": 1,
+  "weekStart": ""
+}

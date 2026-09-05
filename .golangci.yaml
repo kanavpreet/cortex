@@ -1,0 +1,6 @@
+version: "2"
+run:
+  timeout: "5m"
+  allow-parallel-runners: false
+  allow-serial-runners: true
+  concurrency: 1

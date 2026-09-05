@@ -1,0 +1,126 @@
+---
+workload:
+  deployment:
+    autoscaling:
+      minReplicas: 1
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 50
+      telescopeMetrics:
+        - name: queue-length
+          query: |-
+            max by (queue_name) (aws_sqs_approximate_number_of_messages_visible{queue_name!~".*dlq.*",queue_name=~"matik-enr-.*-staging-queue"})
+          tenant: cloudwatch
+          target:
+            value: 200
+            type: Value
+
+mainContainer:
+  name: matik-enricher
+  imageSpec: enricher-dockerfile
+  command:
+    - python
+    - -m
+    - enricher
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1000Mi
+      ephemeral-storage: 512Mi
+    limits:
+      memory: 1000Mi
+      ephemeral-storage: 512Mi
+
+  # Readiness and liveness probes
+  # Temp: no HTTP server exposed, so use exec probe to check PID 1 (main process) is alive
+  livenessProbe:
+    exec:
+      command: ["sh", "-c", "kill -0 1"]
+    initialDelaySeconds: 10
+    periodSeconds: 30
+    failureThreshold: 3
+
+  readinessProbe:
+    exec:
+      command: ["sh", "-c", "kill -0 1"]
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+
+  # File mount for matik config and not volume mount for config separation
+  # use volumeMount for directories
+  fileMounts:
+    - filename: matik-enricher-config.yml
+      mountPath: /app/config/matik-enricher-config.yml
+    - filename: facade-config.yml
+      mountPath: /app/config/facade-config.yml
+    - filename: bedrock-config.yml
+      mountPath: /app/config/bedrock-config.yml
+    - filename: metrics.yml
+      mountPath: /app/config/metrics.yml
+    - filename: llm-tracing-config.yml
+      mountPath: /app/config/llm-tracing-config.yml
+
+
+components:
+- name: secrets
+- name: logging
+
+attributes:
+  extraPodAnnotations:
+    com.airbnb.container-injector-mutator/mem-mini-announcer: 48Mi
+
+service:
+  ports:
+  - port: 8085
+
+iamRole: matik-staging
+
+# Disable veneur sidecar and rely on otel-collector for all metrics
+disableVeneur: true
+
+supportedCPUArchitectures:
+  - amd64
+  - arm64
+
+environments:
+  staging: {}
+  canary:
+    iamRole: matik-production
+    workload:
+      deployment:
+        autoscaling:
+          telescopeMetrics:
+            - name: queue-length
+              query: |-
+                max by (queue_name) (aws_sqs_approximate_number_of_messages_visible{queue_name!~".*dlq.*",queue_name=~"matik-enr-.*-production-queue"})
+              tenant: cloudwatch
+              target:
+                value: 200
+                type: Value
+  production:
+    iamRole: matik-production
+    workload:
+      deployment:
+        autoscaling:
+          telescopeMetrics:
+            - name: queue-length
+              query: |-
+                max by (queue_name) (aws_sqs_approximate_number_of_messages_visible{queue_name!~".*dlq.*",queue_name=~"matik-enr-.*-production-queue"})
+              tenant: cloudwatch
+              target:
+                value: 200
+                type: Value
+  sandbox:
+    iamRole: matik-sandbox
+    workload:
+      deployment:
+        autoscaling:
+          telescopeMetrics:
+            - name: queue-length
+              query: |-
+                max by (queue_name) (aws_sqs_approximate_number_of_messages_visible{queue_name!~".*dlq.*",queue_name=~"matik-enr-.*-sandbox-queue"})
+              tenant: cloudwatch
+              target:
+                value: 200
+                type: Value

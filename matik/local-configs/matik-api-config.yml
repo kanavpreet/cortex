@@ -1,0 +1,36 @@
+---
+# Common configuration for Matik API
+# This is to be used only for local development via docker-compose.
+
+common:
+  environment: ${ENVIRONMENT}
+  log_level: ${LOG_LEVEL}
+  port: ${API_PORT}
+
+# Phase 1c: service-to-service request signing (see common/utils/service_auth.py).
+api:
+  service_secret: ${API_SERVICE_SECRET}
+  enforce_service_signature: false
+
+enigmatologist:
+  sqs_queue_url: ${ENIGMATOLOGIST_QUEUE_URL}
+  sqs_queue_region: ${AWS_REGION}
+
+mysql:
+  engine: mysql
+  endpoint: ${MYSQL_HOST}
+  port: ${MYSQL_PORT}
+  username: ${MYSQL_USER}
+  password: ${MYSQL_PASSWORD}
+  database: ${MYSQL_DATABASE}
+  use_iam: false
+  ssl_mode: disabled
+  max_open_conns: ${MYSQL_MAX_OPEN_CONNS}
+  max_idle_conns: ${MYSQL_MAX_IDLE_CONNS}
+  conn_max_idle_time_minutes: ${MYSQL_CONN_MAX_IDLE_TIME_MINUTES}
+  # Settings used for IAM auth -- use_iam: true
+  # token_expiry_minutes: 15
+  # token_expiry_grace_minutes: 1
+  # canonical_endpoint: ''
+  # corpinfra_role_arn: ''
+  # region: ''

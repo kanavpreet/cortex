@@ -1,0 +1,60 @@
+---
+# Root Cause Coverage Audit Configuration
+# This is to be used only for local development via docker-compose.
+
+common:
+  environment: ${ENVIRONMENT}
+  log_level: ${LOG_LEVEL}
+
+mysql:
+  engine: mysql
+  endpoint: ${MYSQL_HOST}
+  port: ${MYSQL_PORT}
+  username: ${MYSQL_USER}
+  password: ${MYSQL_PASSWORD}
+  database: ${MYSQL_DATABASE}
+  use_iam: false
+  ssl_mode: disabled
+
+incidentio:
+  api_key: ${HISTORIAN_INCIDENTIO_API_KEY}
+  base_url: ${HISTORIAN_INCIDENTIO_BASE_URL}
+  incident_type_ids: ["01HDCV644PMEQQTNKB4MNKTMSM"]
+  # root_cause_prompt/description_prompt are unused by this audit (they gate the
+  # historian's LLM enrichment path only) but IncidentIOConfig requires a
+  # non-empty string -- common/config.py's env-var substitution coerces an
+  # empty string to None, which fails validation, so these can't be "".
+  root_cause_prompt: "unused"
+  description_prompt: "unused"
+
+jira:
+  base_url: ${HISTORIAN_JIRA_BASE_URL}
+  username: ${HISTORIAN_JIRA_USERNAME}
+  password: ${HISTORIAN_JIRA_PASSWORD}
+
+biztech_github:
+  ghe_app_private_key: "${GHE_PRIVATE_KEY}"
+  ghe_app_private_key_file_name: "${GHE_PRIVATE_KEY_FILE_NAME}"
+  ghe_base_url: ${GHE_BASE_URL}
+  ghe_api_path: ${GHE_API_PATH}
+  ghe_upload_path: ${GHE_UPLOAD_PATH}
+  ghe_app_client_id: ${GHE_CLIENT_ID}
+  ghe_app_installation_id: ${GHE_INSTALLATION_ID}
+  ghe_app_id: ${GHE_APP_ID}
+
+sheets:
+  spreadsheet_id: ${ROOT_CAUSE_AUDIT_SPREADSHEET_ID}
+  worksheet_name: ${ROOT_CAUSE_AUDIT_WORKSHEET_NAME}
+  row_key_column: reference_id
+  service_account_json: '${ROOT_CAUSE_AUDIT_SHEETS_SERVICE_ACCOUNT_JSON}'
+
+root_cause_audit:
+  lookback_hours: 24
+  investigation_window_minutes: 20
+  llm_provider: facade
+  braintrust_trace_environment: production
+  min_llm_score: 0.3
+  speculative_patterns: ['\bmay(be)?\b', '\bcould\b', '\bmight\b', '\bpotentially\b', '\bindirectly\b']
+  speculative_max_score: 0.7
+  correlations_worksheet_name: ${ROOT_CAUSE_AUDIT_CORRELATIONS_WORKSHEET_NAME}
+  ground_truth_extraction_prompt: '${ROOT_CAUSE_AUDIT_GROUND_TRUTH_EXTRACTION_PROMPT}'

@@ -1,0 +1,80 @@
+---
+# Root Cause Coverage Audit Configuration
+# Documentation: https://developers.a.musta.ch/docs/default/component/kube-gen/kube-gen/configs/files
+
+# Common configuration shared across services
+common:
+  environment: {{ .Env.Name }}  # Deployment environment
+  log_level: INFO  # Logging level
+
+mysql:
+  engine: mysql
+  endpoint: {{ .Env.Params.mysql.rds_endpoint }}
+  port: 3306  # Database port, default 3306 for MySQL
+{{ if eq .Env.Name "sandbox" }}
+  # Sandbox's own DB has no real reliability-correlation data, so this audit
+  # borrows staging's (a production replica) instead of sandbox's own DB.
+  # Staging and production use their own standard mysql.* params below.
+  database: matik_staging
+  username: matik_staging
+  password: '{{ .App.Secrets.root_cause_audit.staging_mysql_password | default "" }}'  # matik_staging's own DB password -- NOT mysql.default_rds_password, which is scoped to sandbox's own (unused-by-this-audit) DB
+{{ else }}
+  database: {{ .Env.Params.mysql.rds_database }}
+  username: {{ .Env.Params.mysql.default_rds_username }}
+  password: '{{ .App.Secrets.mysql.default_rds_password | default "" }}'  # Password for traditional authentication
+{{ end }}
+  ssl_mode: 'required'  # SSL/TLS mode: 'required', 'preferred', or 'disabled'
+  use_iam: false
+
+incidentio:
+  api_key: '{{ .App.Secrets.incidentio.api_key | default "" }}'  # Incident.io API key for authentication
+  base_url: {{ .Env.Params.incidentio.base_url }}  # API base URL
+  incident_type_ids: {{ .Env.Params.incidentio.incident_type_ids | toJson }} # Filter by incident type IDs
+  # root_cause_prompt/description_prompt are unused by this audit (they gate the
+  # historian's LLM enrichment path only) but IncidentIOConfig requires a
+  # non-empty string -- common/config.py's env-var substitution coerces an
+  # empty string to None, which fails validation, so these can't be "".
+  root_cause_prompt: "unused"
+  description_prompt: "unused"
+
+jira:
+  base_url: {{ .Env.Params.jira.base_url }}  # JIRA REST API base URL
+  username: '{{ .App.Secrets.jira.username | default "" }}'  # JIRA username (usually service account LDAP)
+  password: '{{ .App.Secrets.jira.password | default "" }}'  # JIRA password (usually service account password)
+
+biztech_github:
+  ghe_app_private_key_file_name: {{ .Env.Params.biztech_github.ghe_app_private_key_file_name }}  # GitHub App private key file name
+  ghe_app_private_key: '{{ .App.Secrets.biztech_github.ghe_app_private_key | default "" }}'  # GitHub App private key content
+  ghe_base_url: {{ .Env.Params.biztech_github.ghe_base_url }}  # GitHub Enterprise base URL (host only)
+  ghe_api_path: {{ .Env.Params.biztech_github.ghe_api_path }}  # GitHub Enterprise REST API path
+  ghe_upload_path: {{ .Env.Params.biztech_github.ghe_upload_path }}  # GitHub Enterprise upload API path
+  ghe_app_client_id: {{ .Env.Params.biztech_github.ghe_app_client_id }}  # GitHub App client ID
+  ghe_app_installation_id: {{ .Env.Params.biztech_github.ghe_app_installation_id }}  # GitHub App installation ID
+  ghe_app_id: {{ .Env.Params.biztech_github.ghe_app_id }}  # GitHub App ID
+
+sheets:
+  spreadsheet_id: "{{ .Env.Params.root_cause_audit.spreadsheet_id }}"  # Google Sheets spreadsheet ID
+  worksheet_name: "{{ .Env.Params.root_cause_audit.worksheet_name }}"  # Worksheet (tab) name to read/write
+  row_key_column: reference_id
+  # Manual, out-of-band prerequisite: the service account below must be shared
+  # on the target spreadsheet before the first write — not verifiable at
+  # kube-gen time, only surfaces as a clear error on first run.
+  service_account_json: '{{ .App.Secrets.root_cause_audit.sheets_service_account | default "" }}'
+
+root_cause_audit:
+  lookback_hours: {{ .Env.Params.root_cause_audit.lookback_hours }}  # Hours to look back for newly-terminal incidents each run
+  investigation_window_minutes: {{ .Env.Params.root_cause_audit.investigation_window_minutes }}  # Max minutes after created_at for a Braintrust rerun to count as investigation-time
+  llm_provider: {{ .Env.Params.root_cause_audit.llm_provider }}  # LLM provider for extraction/classification: 'facade' or 'bedrock'
+  braintrust_trace_environment: {{ .Env.Params.root_cause_audit.braintrust_trace_environment }}  # deployment.environment to filter for when reading correlation traces back from Braintrust
+  # Must mirror enigmatologist's own min_llm_score/speculative_patterns/speculative_max_score --
+  # production drops candidates below this same threshold before persisting them, so
+  # BraintrustClient re-applies it when reading raw traces back from Braintrust.
+  min_llm_score: {{ .Env.Params.root_cause_audit.min_llm_score }}
+  speculative_patterns: {{ .Env.Params.root_cause_audit.speculative_patterns }}
+  speculative_max_score: {{ .Env.Params.root_cause_audit.speculative_max_score }}
+  correlations_worksheet_name: {{ .Env.Params.root_cause_audit.correlations_worksheet_name }}  # Worksheet (tab), same spreadsheet, that gets one row per classified correlation
+  # toJson (not a manually-quoted string) because these are multi-line and
+  # contain apostrophes -- a raw quoted substitution breaks YAML both on
+  # indentation (continuation lines do not line up with the key) and on
+  # unescaped literal apostrophe characters.
+  ground_truth_extraction_prompt: {{ .Env.Params.root_cause_audit.ground_truth_extraction_prompt | toJson }}  # System prompt for the ground-truth extraction LLM call

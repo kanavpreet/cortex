@@ -1,0 +1,5 @@
+# LLM Tracing Configuration
+llm_tracing:
+  enabled: ${LLM_TRACING_ENABLED}
+  braintrust_project_id: "${LLM_TRACING_BRAINTRUST_PROJECT_ID}"
+  capture_content: ${LLM_TRACING_CAPTURE_CONTENT}

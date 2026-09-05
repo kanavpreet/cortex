@@ -1,0 +1,58 @@
+name: 🛠️ Task
+description: Use this template to suggest a task, bug fix, or improvement
+title: "[Task]: "
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: 🏷️ Type
+      options:
+        - enhancement
+        - bug fix
+        - refactor
+        - documentation
+        - infrastructure
+        - investigation
+    validations:
+      required: true
+  - type: input
+    id: component
+    attributes:
+      label: 📦 What is the affected component?
+      placeholder: e.g. Historian, API, MCP, Database, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: 📌 What needs to be done?
+      description: A short description of the task or issue.
+      placeholder: e.g. Fix bug where there are duplicate incidents
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Low
+        - Medium
+        - High
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: ✅ Acceptance Criteria
+      description: What does “done” look like?
+      placeholder: e.g. There are no duplicates in the incidentio_incidents table
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: 📎 Any context or links?
+      description: Add links to docs, Slack threads, or anything helpful.
+      placeholder: Paste any relevant links or notes here
+    validations:
+      required: false

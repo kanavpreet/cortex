@@ -1,0 +1,7 @@
+---
+
+# LLM Tracing Configuration
+llm_tracing:
+  enabled: {{ .Env.Params.llm_tracing.enabled }}  # Whether LLM call tracing is enabled
+  braintrust_project_id: "{{ .Env.Params.llm_tracing.braintrust_project_id }}"  # Braintrust project ID traces are attributed to
+  capture_content: {{ .Env.Params.llm_tracing.capture_content }}  # Whether prompt/response content (can carry PII) is logged on spans

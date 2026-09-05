@@ -1,0 +1,118 @@
+---
+title: Matik
+site_name: matik
+category: BizTech
+description: "Biztech Matik"
+slack: biztech-opseng-goalie
+email:
+plugins:
+  - techdocs-core
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Getting Access: getting-started/getting-access.md
+    - Local Development: getting-started/local-development-python.md
+    - Local Development (Legacy): getting-started/local-development.md
+    - Pre-commit Hooks: getting-started/pre-commit-hooks.md
+    - CI/CD: getting-started/ci-cd.md
+    - Documentation: getting-started/documentation.md
+  - Architecture:
+    - VPC Endpoint for RDS: architecture/vpc-endpoint-rds.md
+    - GHE Historian Crawler: architecture/ghe_historian_crawler.md
+    - JIRA Historian Crawler: architecture/jira_historian_crawler.md
+    - MCP Server: architecture/matik-mcp-server.md
+    - Enricher Design: architecture/enricher-design.md
+    - Scribe Design: architecture/scribe-design.md
+    - Chronicler: architecture/chronicler.md
+    - LLM Evaluations: architecture/llm-evaluations.md
+    - Enigmatologist:
+      - Overview: architecture/enigmatologist/enigmatologist.md
+      - Reliability:
+        - Reliability Correlation: architecture/enigmatologist/reliability/reliability-correlation.md
+        - Evaluation: architecture/enigmatologist/reliability/evaluation.md
+  - Development:
+    - API: development/api.md
+    - Clients: development/clients.md
+    - Configuration: development/configuration.md
+    - DAO: development/dao.md
+    - Database: development/database.md
+    - Database Migrations: development/database-migrations.md
+    - Dependencies: development/dependencies.md
+    - Facade: development/facade.md
+    - Historian: development/historian.md
+    - Logging: development/logging.md
+    - Metrics: development/metrics.md
+    - Models: development/models.md
+    - MCP Server: development/mcp-server.md
+    - Naming Conventions: development/naming-conventions.md
+    - Offline Evals: development/offline-evals.md
+    - Passive Monitoring: development/passive-monitoring.md
+    - Onboarding a Data Source: development/onboarding-a-data-source.md
+    - Scribe: development/scribe.md
+  - Observability:
+    - Metrics Reference: observability/metrics.md
+  - Release:
+    - Overview: release/index.md
+    - Release Process: release/release-process.md
+    - Validation Checklist: release/validation-checklist.md
+    - Versioning: release/versioning.md
+    - Release Comms: release/release-comms.md
+    - Release Notes Template: release/templates/release-notes-template.md
+    - Release Comms Template: release/templates/release-comms-template.md
+  - Integration Testing:
+    - Getting Started: integration-testing/getting-started.md
+    - Adding New Tests: integration-testing/adding-tests.md
+    - CI CD Integration: integration-testing/ci-cd-integration.md
+  - Operations:
+    - Database Management: operations/db-management.md
+    - Historian Failure Handling: operations/historian-failure-handling.md
+    - Claude Skills:
+      - Enigmatologist Extract: operations/claude-skills/enigmatologist-extract-skill.md
+      - Enigmatologist Summary: operations/claude-skills/enigmatologist-summary-skill.md
+  - Runbooks:
+    - API Availability Low: runbooks/api-availability-low.md
+    - API p95 Latency High: runbooks/api-p95-latency-high.md
+    - Chronicler Ingest Stopped: runbooks/chronicler-ingest-stopped.md
+    - Chronicler Kafka Errors: runbooks/chronicler-kafka-errors.md
+    - Chronicler Publish Failures: runbooks/chronicler-publish-failures.md
+    - Enigmatologist Worker Liveness: runbooks/enigmatologist-worker-liveness.md
+    - Enigmatologist Queue Depth Runaway: runbooks/enigmatologist-queue-depth-runaway.md
+    - Enigmatologist DLQ Non-Empty: runbooks/enigmatologist-dlq-non-empty.md
+    - Enricher Queue Depth Runaway: runbooks/enricher-queue-depth-runaway.md
+    - Enricher DLQ Non-Empty: runbooks/enricher-dlq-non-empty.md
+    - Facade Call Error Rate High: runbooks/facade-call-error-rate.md
+    - Facade Token Limit Exhausted: runbooks/facade-token-limit-exhausted.md
+    - Historian Job Errors: runbooks/historian-job-errors.md
+    - Historian Staleness: runbooks/historian-stale.md
+    - Container CPU Saturation: runbooks/infra-cpu-saturation.md
+    - Container Memory Saturation: runbooks/infra-memory-saturation.md
+    - OOMKilled Container: runbooks/infra-oom-killed.md
+    - Pod Restart Storm: runbooks/infra-pod-restart-storm.md
+    - RDS CPU Saturation: runbooks/infra-rds-cpu-saturation.md
+    - RDS Storage Exhausted: runbooks/infra-rds-storage-exhausted.md
+    - RDS InnoDB Deadlocks: runbooks/infra-rds-deadlocks.md
+    - MCP Tool Call Error Rate High: runbooks/mcp-tool-call-error-rate.md
+    - MCP Spec Refresh Failures: runbooks/mcp-spec-refresh-failures.md
+    - Scribe Queue Depth Runaway: runbooks/scribe-queue-depth-runaway.md
+    - Scribe DLQ Non-Empty: runbooks/scribe-dlq-non-empty.md
+  - Decisions:
+    - Containerization vs Virtualization: decisions/000-containerization-vs-virtualization.md
+    - Deployment in Prod vs Biztech: decisions/001-deployment-in-prod-vs-biztech.md
+    - Golang vs Python: decisions/002-golang-vs-python.md
+    - MySQL vs Postgres: decisions/003-mysql-vs-postgres.md
+    - TypeScript vs JavaScript: decisions/004-typescript-vs-javascript.md
+    - Timestamp Handling Standardization: decisions/005-timestamp-handling-standardization.md
+    - GHE PR Incremental Crawling: decisions/006-ghe-pr-incremental-crawling.md
+    - Deprecating Protected Branches Table: decisions/007-deprecating-protected-branches-table.md
+    - Hash-based Facade Optimization: decisions/008-hash-based-facade-optimization.md
+    - Language Decision Python: decisions/009-language-decision-python.md
+    - Historian Lambda Architecture: decisions/010-historian-lambda-architecture.md
+    - SQLModel Adoption: decisions/011-sqlmodel-adoption.md
+    - Historian K8s CronJob Architecture: decisions/012-historian-k8s-cronjob-architecture.md
+    - Chronicler Direct Kafka Python: decisions/013-chronicler-direct-kafka-python.md
+    - Data Tiering: decisions/015-data-tiering.md
+    - Filter Incident Type: decisions/017-filter-incident-type.md
+    - Scribe Dedicated Deployments and Batching: decisions/018-scribe-dedicated-deployments-and-batching.md
+    - Jira Webhook Spoofing Mitigations: decisions/020-jira-webhook-spoofing-mitigations.md
+  - Research:
+    - Language Analysis: research/language-analysis.md

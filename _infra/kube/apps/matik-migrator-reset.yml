@@ -1,0 +1,43 @@
+---
+workload:
+  job:
+    restartPolicy: Never
+    backoffLimit: 0 # No retries — downgrade is destructive, fail fast
+    ttlSecondsAfterFinished: 86400 # Keep job history for X seconds after completion
+    activeDeadlineSeconds: 600 # Kill job if migrations take longer X seconds
+
+mainContainer:
+  name: matik-migrator-reset
+  imageSpec: migrator-dockerfile
+  command:
+    - python
+    - -m
+    - migrator
+    - downgrade
+    - base
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  fileMounts:
+    - filename: matik-migrator-config.yml
+      mountPath: /app/config/matik-migrator-config.yml
+  volumeMounts:
+    - mountPath: /tmp/pod
+      name: tmp-pod
+      readOnly: false
+
+components:
+- name: secrets
+
+iamRole: {{ .Env.Params.iamRole }}
+
+# Disable veneur sidecar and rely on otel-collector for all metrics
+disableVeneur: true
+
+supportedCPUArchitectures:
+  - amd64
+  - arm64

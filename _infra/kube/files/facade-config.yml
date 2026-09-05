@@ -1,0 +1,10 @@
+---
+# Facade (LLM Fusion Hub) Configuration
+# Used for interacting with Airbnb's LLM Fusion Hub API
+facade:
+  base_url: {{ .Env.Params.facade.base_url }}  # Facade API base URL
+  resource_bucket: {{ .Env.Params.facade.resource_bucket }}  # S3 bucket for resources
+  default_model: {{ .Env.Params.facade.default_model }}  # Default LLM model to use
+  api_version: {{ .Env.Params.facade.api_version }}  # API version
+  iap_token: '{{ .App.Secrets.facade.iap_token | default "" }}'  # IAP token for authentication - used only for local development
+  mock_mode: false  # Mock mode for local testing (returns canned LLM responses)

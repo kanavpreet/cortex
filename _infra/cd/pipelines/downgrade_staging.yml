@@ -1,0 +1,343 @@
+---
+# Spinnaker pipeline docs: https://developers.airbnb.tools/projects/spinnaker/docs/users/managing_pipelines
+description: >
+  Scales down staging services across all cells (pug/taz/yun) and runs the DB
+  downgrade to base, then stops. Use this to quickly downgrade the schema
+  against a specific branch (e.g. when testing a migration's downgrade path,
+  or rolling back before switching to an older branch) without running the
+  full destructive reset_staging pipeline (no SQS purge, no redeploy).
+  Trigger a manual execution against the branch whose migration files match
+  what's currently stamped in the DB.
+  See _infra/docs/development/reset-matik.md for the related full-reset runbook.
+
+  WARNING: This alters staging's schema. Staging spans three cells, so every
+  service is scaled to 0 in pug, taz, and yun before the DB downgrade.
+
+notifications:
+  - type: slack
+    channel: matik-internal
+
+stages:
+
+  # -------------------------------------------------------------------------
+  # Scale down — stop all services across all cells before touching the DB
+  # -------------------------------------------------------------------------
+  - name: deploy-to-staging-mesh-configs
+    type: onetouchDeploy
+    parameters:
+      apps:
+      - matik-staging
+      environment: mesh
+      context: mesh-mgmt-a-ea1-us
+    timeoutMinutes: 5
+    title: Deploy mesh configs to staging
+
+  # --- Scribe High ---
+  - name: scale-down-scribe-high-pug
+    type: scaleManifest
+    title: Scale down Scribe High (pug)
+    parameters:
+      application: matik-scribe-high
+      environment: staging
+      replicas: 0
+      context: m-n-pug
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+  - name: scale-down-scribe-high-taz
+    type: scaleManifest
+    title: Scale down Scribe High (taz)
+    parameters:
+      application: matik-scribe-high
+      environment: staging
+      replicas: 0
+      context: m-o-taz
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+  - name: scale-down-scribe-high-yun
+    type: scaleManifest
+    title: Scale down Scribe High (yun)
+    parameters:
+      application: matik-scribe-high
+      environment: staging
+      replicas: 0
+      context: m-p-yun
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+
+  # --- Scribe Medium ---
+  - name: scale-down-scribe-medium-pug
+    type: scaleManifest
+    title: Scale down Scribe Medium (pug)
+    parameters:
+      application: matik-scribe-medium
+      environment: staging
+      replicas: 0
+      context: m-n-pug
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+  - name: scale-down-scribe-medium-taz
+    type: scaleManifest
+    title: Scale down Scribe Medium (taz)
+    parameters:
+      application: matik-scribe-medium
+      environment: staging
+      replicas: 0
+      context: m-o-taz
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+  - name: scale-down-scribe-medium-yun
+    type: scaleManifest
+    title: Scale down Scribe Medium (yun)
+    parameters:
+      application: matik-scribe-medium
+      environment: staging
+      replicas: 0
+      context: m-p-yun
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+
+  # --- Scribe Low ---
+  - name: scale-down-scribe-low-pug
+    type: scaleManifest
+    title: Scale down Scribe Low (pug)
+    parameters:
+      application: matik-scribe-low
+      environment: staging
+      replicas: 0
+      context: m-n-pug
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+  - name: scale-down-scribe-low-taz
+    type: scaleManifest
+    title: Scale down Scribe Low (taz)
+    parameters:
+      application: matik-scribe-low
+      environment: staging
+      replicas: 0
+      context: m-o-taz
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+  - name: scale-down-scribe-low-yun
+    type: scaleManifest
+    title: Scale down Scribe Low (yun)
+    parameters:
+      application: matik-scribe-low
+      environment: staging
+      replicas: 0
+      context: m-p-yun
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+
+  # --- Enricher ---
+  - name: scale-down-enricher-pug
+    type: scaleManifest
+    title: Scale down Enricher (pug)
+    parameters:
+      application: matik-enricher
+      environment: staging
+      replicas: 0
+      context: m-n-pug
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+  - name: scale-down-enricher-taz
+    type: scaleManifest
+    title: Scale down Enricher (taz)
+    parameters:
+      application: matik-enricher
+      environment: staging
+      replicas: 0
+      context: m-o-taz
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+  - name: scale-down-enricher-yun
+    type: scaleManifest
+    title: Scale down Enricher (yun)
+    parameters:
+      application: matik-enricher
+      environment: staging
+      replicas: 0
+      context: m-p-yun
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+
+  # --- Enigmatologist ---
+  - name: scale-down-enigmatologist-pug
+    type: scaleManifest
+    title: Scale down Enigmatologist (pug)
+    parameters:
+      application: matik-enigmatologist
+      environment: staging
+      replicas: 0
+      context: m-n-pug
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+  - name: scale-down-enigmatologist-taz
+    type: scaleManifest
+    title: Scale down Enigmatologist (taz)
+    parameters:
+      application: matik-enigmatologist
+      environment: staging
+      replicas: 0
+      context: m-o-taz
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+  - name: scale-down-enigmatologist-yun
+    type: scaleManifest
+    title: Scale down Enigmatologist (yun)
+    parameters:
+      application: matik-enigmatologist
+      environment: staging
+      replicas: 0
+      context: m-p-yun
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+
+  # --- Chronicler ---
+  - name: scale-down-chronicler-pug
+    type: scaleManifest
+    title: Scale down Chronicler (pug)
+    parameters:
+      application: matik-chronicler
+      environment: staging
+      replicas: 0
+      context: m-n-pug
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+  - name: scale-down-chronicler-taz
+    type: scaleManifest
+    title: Scale down Chronicler (taz)
+    parameters:
+      application: matik-chronicler
+      environment: staging
+      replicas: 0
+      context: m-o-taz
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+  - name: scale-down-chronicler-yun
+    type: scaleManifest
+    title: Scale down Chronicler (yun)
+    parameters:
+      application: matik-chronicler
+      environment: staging
+      replicas: 0
+      context: m-p-yun
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+
+  # --- API ---
+  - name: scale-down-api-pug
+    type: scaleManifest
+    title: Scale down API (pug)
+    parameters:
+      application: matik-api
+      environment: staging
+      replicas: 0
+      context: m-n-pug
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+  - name: scale-down-api-taz
+    type: scaleManifest
+    title: Scale down API (taz)
+    parameters:
+      application: matik-api
+      environment: staging
+      replicas: 0
+      context: m-o-taz
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+  - name: scale-down-api-yun
+    type: scaleManifest
+    title: Scale down API (yun)
+    parameters:
+      application: matik-api
+      environment: staging
+      replicas: 0
+      context: m-p-yun
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+
+  # --- MCP ---
+  - name: scale-down-mcp-pug
+    type: scaleManifest
+    title: Scale down MCP (pug)
+    parameters:
+      application: matik-mcp
+      environment: staging
+      replicas: 0
+      context: m-n-pug
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+  - name: scale-down-mcp-taz
+    type: scaleManifest
+    title: Scale down MCP (taz)
+    parameters:
+      application: matik-mcp
+      environment: staging
+      replicas: 0
+      context: m-o-taz
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+  - name: scale-down-mcp-yun
+    type: scaleManifest
+    title: Scale down MCP (yun)
+    parameters:
+      application: matik-mcp
+      environment: staging
+      replicas: 0
+      context: m-p-yun
+    dependsOn:
+      - deploy-to-staging-mesh-configs
+
+  # -------------------------------------------------------------------------
+  # Manual judgment — confirm before the destructive DB downgrade runs
+  # -------------------------------------------------------------------------
+
+  - name: manual-judgment-before-downgrade-staging
+    type: manualJudgment
+    title: Confirm database downgrade
+    instructions: >
+      This will downgrade staging's database schema to base, erasing all
+      data. Staging's DB is shared across the pug/taz/yun cells. Confirm
+      this is intended before proceeding — there is no undo.
+    dependsOn:
+      - scale-down-scribe-high-pug
+      - scale-down-scribe-high-taz
+      - scale-down-scribe-high-yun
+      - scale-down-scribe-medium-pug
+      - scale-down-scribe-medium-taz
+      - scale-down-scribe-medium-yun
+      - scale-down-scribe-low-pug
+      - scale-down-scribe-low-taz
+      - scale-down-scribe-low-yun
+      - scale-down-enricher-pug
+      - scale-down-enricher-taz
+      - scale-down-enricher-yun
+      - scale-down-enigmatologist-pug
+      - scale-down-enigmatologist-taz
+      - scale-down-enigmatologist-yun
+      - scale-down-chronicler-pug
+      - scale-down-chronicler-taz
+      - scale-down-chronicler-yun
+      - scale-down-api-pug
+      - scale-down-api-taz
+      - scale-down-api-yun
+      - scale-down-mcp-pug
+      - scale-down-mcp-taz
+      - scale-down-mcp-yun
+
+  # -------------------------------------------------------------------------
+  # Downgrade migrations — clears the DB schema using this run's branch/image.
+  # Runs on a single cell (pug); the DB is shared across cells.
+  # -------------------------------------------------------------------------
+
+  - name: downgrade-migrations-staging
+    type: onetouchJob
+    title: Downgrade database migrations to base
+    parameters:
+      jobName: matik-migrator-downgrade
+      environment: staging
+      cell: pug
+      timeoutMinutes: 10
+      waitForCompletion: true
+    dependsOn:
+      - manual-judgment-before-downgrade-staging

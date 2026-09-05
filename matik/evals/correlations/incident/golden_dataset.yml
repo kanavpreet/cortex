@@ -1,0 +1,623 @@
+# ⚠️  FICTIONAL DATA — NOT REAL INCIDENTS OR CHANGES.
+# Golden rows for the incident-correlation eval. Each row is an incident plus a
+# candidate pool of PRs/TCMRs mixing true causes with distractors; expected.
+# correlated_ids is the set the engine should select. Fake PII appears in some
+# candidate descriptions; the correct selection never depends on it.
+
+# No incident services; PR-only. Cause named in the description.
+- input:
+    incident_description: Checkout is returning 500 errors and customer card payments are being declined.
+    incident_created_at: '2026-05-10T14:30:00'
+    incident_affected_services: []
+    github_events:
+    - id: PR-5501
+      description: 'payments-gateway: switch card validation to the new tokenization client'
+      timestamp: '2026-05-10T13:55:00'
+      services:
+      - payments-gateway
+    - id: PR-5490
+      description: 'search-index: bump the analyzer version'
+      timestamp: '2026-05-10T12:00:00'
+      services:
+      - search-index
+    - id: PR-5495
+      description: 'docs: update the README for payments-gateway'
+      timestamp: '2026-05-10T14:10:00'
+      services:
+      - payments-gateway
+    jira_events: []
+  expected:
+    correlated_ids:
+    - PR-5501
+    score_bands:
+      PR-5501:
+      - 0.8
+      - 1.0
+  metadata:
+    reference_id: CORR-0001
+    scenario: single_pr_cause
+
+# No incident services; TCMR-only. Match on a named component (VPN certificate).
+- input:
+    incident_description: VPN connections dropping for remote employees with certificate validation errors.
+    incident_created_at: '2026-05-12T09:00:00'
+    incident_affected_services: []
+    github_events: []
+    jira_events:
+    - id: TCMR-7720
+      description: Rotate the VPN gateway TLS certificate
+      timestamp: '2026-05-12T08:30:00'
+      services: []
+    - id: TCMR-7715
+      description: Quarterly OS patching for the build-server hosts
+      timestamp: '2026-05-12T07:00:00'
+      services: []
+  expected:
+    correlated_ids:
+    - TCMR-7720
+    score_bands:
+      TCMR-7720:
+      - 0.6
+      - 1.0
+  metadata:
+    reference_id: CORR-0002
+    scenario: tcmr_component_match
+
+# TRAP (shared logging tech, different function/pipeline): both candidates touch
+# "logging"/CloudWatch but neither affects log ingestion into OpenSearch. Reject.
+- input:
+    incident_description: CloudWatch logs stopped ingesting into the central OpenSearch cluster.
+    incident_created_at: '2026-05-14T16:00:00'
+    incident_affected_services: []
+    github_events:
+    - id: PR-6001
+      description: 'okta-observability-tf: add new CloudWatch metric filters for sign-on metrics'
+      timestamp: '2026-05-14T15:00:00'
+      services:
+      - okta-observability-tf
+    - id: PR-6010
+      description: 'billing-service: add a retry to the invoice job'
+      timestamp: '2026-05-14T15:45:00'
+      services:
+      - billing-service
+    jira_events: []
+  expected:
+    correlated_ids: []
+    score_bands: {}
+  metadata:
+    reference_id: CORR-0003
+    scenario: shared_logging_tech_reject
+
+# KEEPS incident services (multi-service match); PR-only. Two causes.
+- input:
+    incident_description: Order processing delayed; the orders-service queue is backing up after a deploy.
+    incident_created_at: '2026-05-15T11:20:00'
+    incident_affected_services:
+    - orders-service
+    - queue-broker
+    github_events:
+    - id: PR-6105
+      description: 'orders-service: change the queue consumer batch size'
+      timestamp: '2026-05-15T10:50:00'
+      services:
+      - orders-service
+    - id: PR-6108
+      description: 'queue-broker: increase the prefetch limit'
+      timestamp: '2026-05-15T11:00:00'
+      services:
+      - queue-broker
+    - id: PR-6100
+      description: 'frontend: update the order page copy'
+      timestamp: '2026-05-15T09:00:00'
+      services:
+      - frontend
+    jira_events: []
+  expected:
+    correlated_ids:
+    - PR-6105
+    - PR-6108
+    score_bands:
+      PR-6105:
+      - 0.6
+      - 1.0
+      PR-6108:
+      - 0.6
+      - 1.0
+  metadata:
+    reference_id: CORR-0004
+    scenario: multiple_causes
+
+# No incident services; PR + TCMR pool. Ownership-only distractor carries fake PII.
+- input:
+    incident_description: Login failures spiking on identity-service after a config change.
+    incident_created_at: '2026-05-16T13:00:00'
+    incident_affected_services: []
+    github_events:
+    - id: PR-6201
+      description: 'identity-service: enable MFA for the cloud directory'
+      timestamp: '2026-05-16T12:30:00'
+      services:
+      - identity-service
+    - id: PR-6205
+      description: 'identity-service: add Priya Raman as a code owner'
+      timestamp: '2026-05-16T12:45:00'
+      services:
+      - identity-service
+    jira_events:
+    - id: TCMR-8200
+      description: Quarterly access review
+      timestamp: '2026-05-16T11:00:00'
+      services: []
+  expected:
+    correlated_ids:
+    - PR-6201
+    score_bands:
+      PR-6201:
+      - 0.8
+      - 1.0
+  metadata:
+    reference_id: CORR-0005
+    scenario: same_service_distractor
+
+# No incident services; PR-only. Cause + a "revert"/Grafana keyword distractor on
+# another service (must not match on the shared keyword).
+- input:
+    incident_description: Grafana dashboards blank for the metrics-platform service.
+    incident_created_at: '2026-05-17T10:00:00'
+    incident_affected_services: []
+    github_events:
+    - id: PR-6301
+      description: 'metrics-platform: migrate to the new datasource'
+      timestamp: '2026-05-17T09:30:00'
+      services:
+      - metrics-platform
+    - id: PR-6310
+      description: 'analytics-portal: revert a recent Grafana dashboard change'
+      timestamp: '2026-05-17T09:00:00'
+      services:
+      - analytics-portal
+    jira_events: []
+  expected:
+    correlated_ids:
+    - PR-6301
+    score_bands:
+      PR-6301:
+      - 0.8
+      - 1.0
+  metadata:
+    reference_id: CORR-0006
+    scenario: revert_keyword_distractor
+
+# TRAP (same tool, different job): both candidates touch Jenkins, but a Jenkins
+# change in an unrelated project does not cause the ops-metrics Jenkins outage.
+- input:
+    incident_description: Jenkins server backing the ops-metrics pipeline is unreachable; jobs cannot
+      connect.
+    incident_created_at: '2026-05-18T08:00:00'
+    incident_affected_services: []
+    github_events:
+    - id: PR-6401
+      description: 'micromdm-cookbook: fix linting in the cookbook jenkins run'
+      timestamp: '2026-05-18T07:30:00'
+      services:
+      - micromdm-cookbook
+    jira_events:
+    - id: TCMR-8400
+      description: Upgrade the Jenkins plugin set for the mobile-ci project
+      timestamp: '2026-05-18T06:30:00'
+      services:
+      - mobile-ci
+  expected:
+    correlated_ids: []
+    score_bands: {}
+  metadata:
+    reference_id: CORR-0007
+    scenario: shared_tool_different_job_reject
+
+# KEEPS incident services (substring match: biztech_iap ~ biztech_gcp-iap-connector); PR + TCMR.
+- input:
+    incident_description: Internal apps behind IAP returning 403s; biztech_iap auth failing.
+    incident_created_at: '2026-05-19T15:00:00'
+    incident_affected_services:
+    - biztech_iap
+    github_events:
+    - id: PR-6501
+      description: 'biztech_gcp-iap-connector: update the OAuth client config'
+      timestamp: '2026-05-19T14:30:00'
+      services:
+      - biztech_gcp-iap-connector
+    - id: PR-6510
+      description: 'payments-gateway: bump a dependency'
+      timestamp: '2026-05-19T14:00:00'
+      services:
+      - payments-gateway
+    jira_events:
+    - id: TCMR-8500
+      description: Rotate service account keys for the data warehouse
+      timestamp: '2026-05-19T13:00:00'
+      services: []
+  expected:
+    correlated_ids:
+    - PR-6501
+    score_bands:
+      PR-6501:
+      - 0.6
+      - 1.0
+  metadata:
+    reference_id: CORR-0008
+    scenario: service_substring_match
+
+# No incident services; PR-only, large distractor pool, single cause.
+- input:
+    incident_description: Users across the org stopped receiving any email notifications.
+    incident_created_at: '2026-05-20T12:00:00'
+    incident_affected_services: []
+    github_events:
+    - id: PR-6601
+      description: 'notification-service: switch to the new SMTP provider client'
+      timestamp: '2026-05-20T11:30:00'
+      services:
+      - notification-service
+    - id: PR-6602
+      description: 'analytics: add a new event'
+      timestamp: '2026-05-20T11:00:00'
+      services:
+      - analytics
+    - id: PR-6603
+      description: 'frontend: restyle the settings page'
+      timestamp: '2026-05-20T10:30:00'
+      services:
+      - frontend
+    - id: PR-6604
+      description: 'data-pipeline: parallelize ingest'
+      timestamp: '2026-05-20T10:00:00'
+      services:
+      - data-pipeline
+    - id: PR-6605
+      description: 'search-index: reindex the catalog'
+      timestamp: '2026-05-20T09:30:00'
+      services:
+      - search-index
+    jira_events: []
+  expected:
+    correlated_ids:
+    - PR-6601
+    score_bands:
+      PR-6601:
+      - 0.8
+      - 1.0
+  metadata:
+    reference_id: CORR-0009
+    scenario: large_pool_single_cause
+
+# No incident services; TCMR-only. PII in the TRUE cause; selection ignores PII.
+- input:
+    incident_description: Payroll export failing; the payroll-service job is throwing serialization errors.
+    incident_created_at: '2026-05-21T09:00:00'
+    incident_affected_services: []
+    github_events: []
+    jira_events:
+    - id: TCMR-9001
+      description: 'payroll-service: apply connector config changes requested by Dana Whitlock'
+      timestamp: '2026-05-21T08:15:00'
+      services:
+      - payroll-service
+    - id: TCMR-9005
+      description: Quarterly access review
+      timestamp: '2026-05-21T07:00:00'
+      services: []
+  expected:
+    correlated_ids:
+    - TCMR-9001
+    score_bands:
+      TCMR-9001:
+      - 0.6
+      - 1.0
+  metadata:
+    reference_id: CORR-0010
+    scenario: pii_in_true_cause
+
+# No incident services; TCMR-only. Firewall/policy change naming the host.
+- input:
+    incident_description: Reporting connector cannot reach upstream; connection refused to the report-mcp
+      host.
+    incident_created_at: '2026-05-22T13:00:00'
+    incident_affected_services: []
+    github_events: []
+    jira_events:
+    - id: TCMR-9100
+      description: Tighten egress policy reporting_api_to_connector, removing report-mcp.example-internal.test
+        from allowed destinations
+      timestamp: '2026-05-22T12:30:00'
+      services: []
+    - id: TCMR-9105
+      description: Update IP allow lists for the HR-system WAF
+      timestamp: '2026-05-22T11:00:00'
+      services: []
+  expected:
+    correlated_ids:
+    - TCMR-9100
+    score_bands:
+      TCMR-9100:
+      - 0.6
+      - 1.0
+  metadata:
+    reference_id: CORR-0011
+    scenario: firewall_cause
+
+# No incident services; PR + TCMR pool. Match the cause by the named component.
+- input:
+    incident_description: Build queue stuck; CI jobs not completing for orchard-service.
+    incident_created_at: '2026-05-23T16:00:00'
+    incident_affected_services: []
+    github_events:
+    - id: PR-6701
+      description: 'orchard-service: change CI config to build all branches'
+      timestamp: '2026-05-23T15:30:00'
+      services:
+      - orchard-service
+    - id: PR-6705
+      description: 'billing-service: fix an invoice rounding bug'
+      timestamp: '2026-05-23T15:00:00'
+      services:
+      - billing-service
+    jira_events:
+    - id: TCMR-9300
+      description: Update the wiki retention policy
+      timestamp: '2026-05-23T14:00:00'
+      services: []
+  expected:
+    correlated_ids:
+    - PR-6701
+    score_bands:
+      PR-6701:
+      - 0.6
+      - 1.0
+  metadata:
+    reference_id: CORR-0012
+    scenario: description_match_no_service
+
+# TRAP (generic connectivity != the outage): a Slack outage attracts SMTP/relay
+# connectivity changes on unrelated services. None touch Slack. Reject.
+- input:
+    incident_description: Slack is experiencing issues with Slackbot and some notification features.
+    incident_created_at: '2026-05-24T10:00:00'
+    incident_affected_services: []
+    github_events:
+    - id: PR-6810
+      description: 'serviceeasy: fix SMTP connection, use port 25 for the internal relay'
+      timestamp: '2026-05-24T09:45:00'
+      services:
+      - serviceeasy
+    jira_events:
+    - id: TCMR-9400
+      description: 'smtp-relay: roll out a local testing stack and observability docs'
+      timestamp: '2026-05-24T09:30:00'
+      services:
+      - smtp-relay
+  expected:
+    correlated_ids: []
+    score_bands: {}
+  metadata:
+    reference_id: CORR-0013
+    scenario: generic_connectivity_reject
+
+# Symptom-only description (names the product, not the service id). Distractors:
+# a generic "access provisioning" change on another app, and a "vault" keyword
+# collision (vault-secret infra != the vault manager app). Must reject both.
+- input:
+    incident_description: External partners can no longer sign in to the vault manager.
+    incident_created_at: '2026-05-25T11:00:00'
+    incident_affected_services: []
+    github_events:
+    - id: PR-6901
+      description: 'vaultmgr-web: tighten the external-partner SSO allowlist'
+      timestamp: '2026-05-25T10:20:00'
+      services:
+      - vaultmgr-web
+    - id: PR-6905
+      description: 'bt-retool-app: update the AccessProvision workflow'
+      timestamp: '2026-05-25T10:40:00'
+      services:
+      - bt-retool-app
+    - id: PR-6910
+      description: 'oic-infra: restore the vault secret configuration for stage'
+      timestamp: '2026-05-25T10:00:00'
+      services:
+      - oic-infra
+    jira_events: []
+  expected:
+    correlated_ids:
+    - PR-6901
+    score_bands:
+      PR-6901:
+      - 0.8
+      - 1.0
+  metadata:
+    reference_id: CORR-0014
+    scenario: access_keyword_distractors
+
+# No incident services; PR-only. Cause + a "CDN" keyword distractor on another
+# service (must not match on the shared technology keyword).
+- input:
+    incident_description: Image rendering broken on listings-service.
+    incident_created_at: '2026-05-26T14:00:00'
+    incident_affected_services: []
+    github_events:
+    - id: PR-7001
+      description: 'listings-service: swap the image CDN client'
+      timestamp: '2026-05-26T13:30:00'
+      services:
+      - listings-service
+    - id: PR-7010
+      description: 'video-service: raise the CDN edge cache TTL for video assets'
+      timestamp: '2026-05-26T13:00:00'
+      services:
+      - video-service
+    jira_events: []
+  expected:
+    correlated_ids:
+    - PR-7001
+    score_bands:
+      PR-7001:
+      - 0.8
+      - 1.0
+  metadata:
+    reference_id: CORR-0015
+    scenario: keyword_overlap_distractor
+
+# KEEPS incident services; PR + TCMR. Two causes across both sources.
+- input:
+    incident_description: 'SSO login broken org-wide after the identity-platform change window: new sign-ins
+      are rejected and existing sessions were invalidated.'
+    incident_created_at: '2026-05-27T09:00:00'
+    incident_affected_services:
+    - identity-platform
+    github_events:
+    - id: PR-7101
+      description: 'identity-platform: rotate the session signing key'
+      timestamp: '2026-05-27T08:30:00'
+      services:
+      - identity-platform
+    jira_events:
+    - id: TCMR-9200
+      description: 'identity-platform: enable the new SSO provider in the admin console'
+      timestamp: '2026-05-27T08:00:00'
+      services:
+      - identity-platform
+    - id: TCMR-9205
+      description: Quarterly OS patching for build servers
+      timestamp: '2026-05-27T07:00:00'
+      services: []
+  expected:
+    correlated_ids:
+    - PR-7101
+    - TCMR-9200
+    score_bands:
+      PR-7101:
+      - 0.6
+      - 1.0
+      TCMR-9200:
+      - 0.6
+      - 1.0
+  metadata:
+    reference_id: CORR-0016
+    scenario: multi_cause_mixed_sources
+
+# No incident services; PR-only. Sparse incident description.
+- input:
+    incident_description: search-service down.
+    incident_created_at: '2026-05-28T10:00:00'
+    incident_affected_services: []
+    github_events:
+    - id: PR-7201
+      description: 'search-service: upgrade the query engine to v3'
+      timestamp: '2026-05-28T09:30:00'
+      services:
+      - search-service
+    - id: PR-7205
+      description: 'search-service: update unit test fixtures'
+      timestamp: '2026-05-28T09:00:00'
+      services:
+      - search-service
+    jira_events: []
+  expected:
+    correlated_ids:
+    - PR-7201
+    score_bands:
+      PR-7201:
+      - 0.6
+      - 1.0
+  metadata:
+    reference_id: CORR-0017
+    scenario: sparse_incident
+
+# No incident services; PR + TCMR. Same-service ownership distractor carries fake PII.
+- input:
+    incident_description: Data warehouse loads failing; warehouse-loader timing out on the orders table.
+    incident_created_at: '2026-05-29T02:00:00'
+    incident_affected_services: []
+    github_events:
+    - id: PR-7301
+      description: 'warehouse-loader: change the orders table partition strategy'
+      timestamp: '2026-05-29T01:30:00'
+      services:
+      - warehouse-loader
+    - id: PR-7305
+      description: 'warehouse-loader: add Marcus Feldt to CODEOWNERS'
+      timestamp: '2026-05-29T01:45:00'
+      services:
+      - warehouse-loader
+    jira_events:
+    - id: TCMR-9500
+      description: Schedule a warehouse maintenance window
+      timestamp: '2026-05-29T00:30:00'
+      services: []
+  expected:
+    correlated_ids:
+    - PR-7301
+    score_bands:
+      PR-7301:
+      - 0.8
+      - 1.0
+  metadata:
+    reference_id: CORR-0018
+    scenario: pii_distractor
+
+# KEEPS incident services (delimiter normalization: search_index ~ search-index); PR-only.
+- input:
+    incident_description: Stale results on search; search_index not updating.
+    incident_created_at: '2026-05-30T13:00:00'
+    incident_affected_services:
+    - search_index
+    github_events:
+    - id: PR-7401
+      description: 'search-index: change the refresh interval'
+      timestamp: '2026-05-30T12:30:00'
+      services:
+      - search-index
+    - id: PR-7405
+      description: 'orders-service: tweak the retry policy'
+      timestamp: '2026-05-30T12:00:00'
+      services:
+      - orders-service
+    jira_events: []
+  expected:
+    correlated_ids:
+    - PR-7401
+    score_bands:
+      PR-7401:
+      - 0.6
+      - 1.0
+  metadata:
+    reference_id: CORR-0019
+    scenario: service_delimiter_normalization
+
+# KEEPS incident services; PR + TCMR. Same-service change is cosmetic -> no correlation.
+- input:
+    incident_description: Latency on cart-service checkout.
+    incident_created_at: '2026-05-31T17:00:00'
+    incident_affected_services:
+    - cart-service
+    github_events:
+    - id: PR-7501
+      description: 'cart-service: fix a typo in a log message'
+      timestamp: '2026-05-31T16:30:00'
+      services:
+      - cart-service
+    - id: PR-7505
+      description: 'marketing-site: update the homepage banner copy'
+      timestamp: '2026-05-31T16:00:00'
+      services:
+      - marketing-site
+    jira_events:
+    - id: TCMR-9600
+      description: Update the PCI compliance documentation
+      timestamp: '2026-05-31T15:00:00'
+      services: []
+  expected:
+    correlated_ids: []
+    score_bands: {}
+  metadata:
+    reference_id: CORR-0020
+    scenario: same_service_cosmetic_no_corr

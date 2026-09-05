@@ -1,0 +1,80 @@
+---
+description: Deploys matik to the sandbox environment Only
+notifications:
+  - type: slack
+    channel: matik-internal
+stages:
+
+- name: deploy-to-sandbox-mesh
+  type: onetouchDeploy
+  parameters:
+    apps:
+    - matik-sandbox
+    environment: mesh
+    context: mesh-mgmt-a-ea1-us
+  timeoutMinutes: 5
+  title: Deploy mesh configs to sandbox
+- name: run-migrations-sandbox
+  type: onetouchJob
+  parameters:
+    jobName: matik-migrator
+    environment: sandbox
+    cell: pug
+    timeoutMinutes: 10
+    waitForCompletion: true
+  title: Run database migrations
+  dependsOn:
+    - deploy-to-sandbox-mesh
+- name: deploy-to-sandbox
+  type: cellularDeploy
+  parameters:
+    apps:
+      - matik-mcp
+      - matik-chronicler
+      - matik-api
+      - matik-enigmatologist
+      - matik-enricher
+      - matik-dbmanager
+      - matik-scribe-high
+      - matik-scribe-medium
+      - matik-scribe-low
+    environment: sandbox
+    cells:
+      - pug
+    rollout:
+      strategy: bluegreen
+      params:
+        pauseSeconds: 300 # 5 minutes
+  timeoutMinutes: 15
+  title: Deploy to Sandbox
+  dependsOn:
+    - run-migrations-sandbox
+    - deploy-to-sandbox-mesh
+- name: deploy-to-sandbox-jobs
+  type: cellularDeploy
+  parameters:
+    apps:
+      - matik-historian-biztech-github
+      - matik-historian-incidentio
+      - matik-historian-jira
+      - matik-audit-root-cause
+    environment: sandbox
+    cells:
+      - pug
+  title: Deploy Jobs to Sandbox
+  dependsOn:
+    - run-migrations-sandbox
+    - deploy-to-sandbox-mesh
+# - name: integration-tests
+#   type: integrationTests
+#   parameters:
+#     environment: sandbox
+#     context: m-n-pug
+#     jobs:
+#       - matik-integration-tests
+#     cells:
+#       - pug
+#   timeoutMinutes: 15
+#   title: Run integration tests
+#   dependsOn:
+#     - deploy-to-sandbox

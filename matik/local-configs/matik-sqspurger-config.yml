@@ -1,0 +1,11 @@
+---
+# Configuration for Matik SQS Purger
+# This is to be used only for local development via docker-compose.
+
+common:
+  environment: ${ENVIRONMENT}
+  log_level: ${LOG_LEVEL}
+
+sqs_purger:
+  region: us-east-1
+  queue_urls: []  # No queues to purge locally

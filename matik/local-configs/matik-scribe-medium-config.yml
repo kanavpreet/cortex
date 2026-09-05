@@ -1,0 +1,42 @@
+---
+# Local development config for the medium-priority Scribe deployment.
+# Consumes the medium-priority SQS queue (enricher pipeline output).
+
+common:
+  environment: ${ENVIRONMENT}
+  log_level: ${LOG_LEVEL}
+
+mysql:
+  engine: mysql
+  endpoint: ${MYSQL_HOST}
+  port: ${MYSQL_PORT}
+  username: ${MYSQL_USER}
+  password: ${MYSQL_PASSWORD}
+  database: ${MYSQL_DATABASE}
+  use_iam: false
+  ssl_mode: disabled
+  max_open_conns: ${MYSQL_MAX_OPEN_CONNS}
+  max_idle_conns: ${MYSQL_MAX_IDLE_CONNS}
+  conn_max_idle_time_minutes: ${MYSQL_CONN_MAX_IDLE_TIME_MINUTES}
+  token_expiry_minutes: 15
+  token_expiry_grace_minutes: 1
+  canonical_endpoint: ''
+  corpinfra_role_arn: ''
+  region: ''
+
+scribe:
+  queue:
+    queue_url: ${SCRIBE_MEDIUM_PRIORITY_QUEUE_URL}
+    dlq_url:   ${SCRIBE_MEDIUM_PRIORITY_DLQ_URL}
+  sqs_queue_region: ${AWS_REGION}
+  sqs_max_messages: 10
+  sqs_wait_time_seconds: 5
+  sqs_visibility_timeout: 300
+  sqs_poll_error_delay: 5
+  max_concurrent_writes: 10
+  enrichment_base_not_found_delay: ${SCRIBE_ENRICHMENT_BASE_NOT_FOUND_DELAY}
+  batch_max_messages: 50
+  batch_flush_interval_ms: 2000
+
+enigmatologist:
+  sqs_queue_url: ${ENIGMATOLOGIST_QUEUE_URL}

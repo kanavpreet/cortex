@@ -1,0 +1,7 @@
+jobs:
+  matik-integration-tests:
+    framework: pytest
+    params:
+      pytest_args:
+        - --log-level=DEBUG
+        - --log-cli-level=DEBUG

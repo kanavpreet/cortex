@@ -1,0 +1,59 @@
+---
+# Python test job - runs pytest with coverage
+dockerfile: "../Dockerfile"
+
+steps:
+  ########### Install Dependencies ##############
+  - type: run
+    label: Install dependencies
+    command: |
+      set -euxo pipefail
+      echo "Installing Python dependencies..."
+      cd matik
+      uv sync --all-extras
+      echo "Dependencies installed successfully!"
+
+  ########### Run tests ##############
+  - type: run
+    label: Run pytest
+    command: |
+      set -euxo pipefail
+      cd matik
+      uv run pytest -v --cov=. --cov-report=xml:coverage/coverage.xml --cov-report=term
+
+  - type: run
+    label: Generate test failure banner
+    id: test-failure-banner
+    when: on_failure
+    command: |
+      echo '{ "style": "error", "body": "**Tests Failed!**<br/>Some tests did not pass successfully.<br/>**Please check the test output above for details and fix the issues.**" }'
+
+  - type: banner
+    label: Display test failure banner
+    banner_json: "{{ test-failure-banner }}"
+    when: on_failure
+    banner_id: test-failure
+
+  ########### Code Coverage ##############
+  - type: run
+    label: Process code coverage
+    command: |
+      set -euxo pipefail
+      APP_NAME=$(cut -d'/' -f2 <<<"${JORB_GIT_REPO_SLUG}")
+      # Coverage XML is already in matik/coverage/coverage.xml from pytest
+      cloudcov process-single ./matik/coverage -f coveragepy -a $APP_NAME -h $JORB_GIT_REPO_SLUG --project-path "matik" \
+        -b $JORB_GIT_BRANCH -s $JORB_GIT_SHA -p $(pwd) -r refs/heads/main
+
+  - type: run
+    label: Generate coverage banner
+    id: coverage
+    when: always
+    command: |
+      APP_NAME=$(cut -d'/' -f2 <<<"${JORB_GIT_REPO_SLUG}")
+      cloudcov banner ./matik/coverage -a $APP_NAME -b $JORB_GIT_BRANCH -s $JORB_GIT_SHA
+
+  - type: banner
+    label: Display coverage
+    when: always
+    banner_json: "{{ coverage }}"
+    banner_id: coverage

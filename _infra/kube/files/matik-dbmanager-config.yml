@@ -1,0 +1,19 @@
+---
+# Configuration for Matik DBManager
+# Sandbox-only pod for running Alembic migrations manually and browsing the DB via Adminer
+
+# Common configuration shared across services
+common:
+  environment: {{ .Env.Name }}  # Deployment environment
+  log_level: INFO  # Logging level
+
+# Database configuration
+mysql:
+  engine: mysql  # Database engine type, e.g. 'mysql'
+  endpoint: {{ .Env.Params.mysql.rds_endpoint }}  # Database host/endpoint
+  port: 3306  # Database port, default 3306 for MySQL
+  username: {{ .Env.Params.mysql.migrator.rds_username }}  # Username for database authentication
+  password: '{{ .App.Secrets.mysql.migrator.rds_password | default "" }}'  # Password for traditional authentication
+  database: {{ .Env.Params.mysql.rds_database }}  # Database name to connect to
+  ssl_mode: required  # SSL/TLS mode: 'required', 'preferred', or 'disabled'
+  use_iam: {{ .Env.Params.mysql.use_iam }}  # Enable AWS IAM authentication for RDS connections

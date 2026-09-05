@@ -1,0 +1,51 @@
+---
+workload:
+  job:
+    restartPolicy: Never
+    backoffLimit: 3 # Retry up to X times on failure
+    ttlSecondsAfterFinished: 86400 # Keep job history for X seconds after completion
+    activeDeadlineSeconds: 600 # Kill job if migrations take longer X seconds
+
+mainContainer:
+  name: matik-migrator-downgrade
+  imageSpec: migrator-dockerfile
+  command:
+    - python
+    - -m
+    - migrator
+    - downgrade
+    - base
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  fileMounts:
+    - filename: matik-migrator-config.yml
+      mountPath: /app/config/matik-migrator-config.yml
+  volumeMounts:
+    - mountPath: /tmp/pod
+      name: tmp-pod
+      readOnly: false
+
+components:
+- name: secrets
+
+iamRole: matik-staging
+
+disableVeneur: true
+
+supportedCPUArchitectures:
+  - amd64
+  - arm64
+
+environments:
+  staging: {}
+  canary:
+    iamRole: matik-production
+  production:
+    iamRole: matik-production
+  sandbox:
+    iamRole: matik-sandbox

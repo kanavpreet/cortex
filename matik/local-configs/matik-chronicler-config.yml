@@ -1,0 +1,42 @@
+---
+# Local-dev configuration for Matik Chronicler.
+# Chronicler is a Kafka consumer (no inbound HTTP) — there is no port.
+
+common:
+  environment: ${ENVIRONMENT}
+  log_level: ${LOG_LEVEL}
+
+chronicler:
+  kafka:
+    bootstrap_servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    group_id: matik-chronicler-${ENVIRONMENT}
+    auto_offset_reset: latest
+    poll_timeout_seconds: 1.0
+    topics:
+      - yoyo.callback.matik_ghe_webhook_events
+      - yoyo.callback.matik_jira_webhook_events
+      - yoyo.callback.matik_incidentio_webhook_events
+      - yoyo.callback.matik_generic_webhook_events
+      - yoyo.callback.matik_sandbox_generic_webhook_events
+
+  github_webhook_secret: ${CHRONICLER_GITHUB_WEBHOOK_SECRET}
+  incidentio_webhook_secret: ${CHRONICLER_INCIDENTIO_WEBHOOK_SECRET}
+  generic_webhook_secret: ${CHRONICLER_GENERIC_WEBHOOK_SECRET}
+
+  scribe_queue_url: ${CHRONICLER_SCRIBE_QUEUE_URL}
+  scribe_queue_region: ${CHRONICLER_SCRIBE_QUEUE_REGION}
+
+  enricher_queue_url: ${CHRONICLER_ENRICHER_QUEUE_URL}
+  enricher_queue_region: ${CHRONICLER_ENRICHER_QUEUE_REGION}
+
+# GitHub Enterprise app credentials used only to fetch a merged PR's
+# conversation comments at webhook time (read-only). Mirrors the keys wired in
+# _infra/kube/files/matik-chronicler-config.yml.
+biztech_github:
+  ghe_app_private_key: "${GHE_PRIVATE_KEY}"
+  ghe_base_url: ${GHE_BASE_URL}
+  ghe_api_path: ${GHE_API_PATH}
+  ghe_upload_path: ${GHE_UPLOAD_PATH}
+  ghe_app_client_id: ${GHE_CLIENT_ID}
+  ghe_app_installation_id: ${GHE_INSTALLATION_ID}
+  ghe_app_id: ${GHE_APP_ID}

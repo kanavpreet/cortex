@@ -1,0 +1,83 @@
+---
+workload:
+  deployment:
+    replicas: 1
+
+mainContainer:
+  name: matik-chronicler
+  imageSpec: chronicler-dockerfile
+  command:
+    - python
+    - -m
+    - chronicler
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1000Mi
+      ephemeral-storage: 512Mi
+    limits:
+      memory: 1000Mi
+      ephemeral-storage: 512Mi
+
+  # Readiness and liveness probes
+  # Temp: no HTTP server exposed, so use exec probe to check PID 1 (main process) is alive
+  livenessProbe:
+    exec:
+      command: ["sh", "-c", "kill -0 1"]
+    initialDelaySeconds: 10
+    periodSeconds: 30
+    failureThreshold: 3
+
+  readinessProbe:
+    exec:
+      command: ["sh", "-c", "kill -0 1"]
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+
+  # File mount for matik config and not volume mount for config separation
+  # use volumeMount for directories
+  fileMounts:
+    - filename: matik-chronicler-config.yml
+      mountPath: /app/config/matik-chronicler-config.yml
+    - filename: facade-config.yml
+      mountPath: /app/config/facade-config.yml
+    - filename: metrics.yml
+      mountPath: /app/config/metrics.yml
+
+
+components:
+- name: secrets
+- name: logging
+
+attributes:
+  extraPodAnnotations:
+    com.airbnb.container-injector-mutator/mem-mini-announcer: 48Mi
+
+iamRole: matik-staging
+
+# Disable veneur sidecar and rely on otel-collector for all metrics
+disableVeneur: true
+
+supportedCPUArchitectures:
+  - amd64
+  - arm64
+
+environments:
+  staging: {}
+  canary:
+    iamRole: matik-production
+    workload:
+      deployment:
+        replicas: 1
+  production:
+    iamRole: matik-production
+    workload:
+      deployment:
+        autoscaling:
+          minReplicas: 1
+          maxReplicas: 4
+          targetCPUUtilizationPercentage: 50
+  sandbox:
+    iamRole: matik-sandbox

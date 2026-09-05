@@ -1,0 +1,613 @@
+apiVersion: v1beta3
+
+############### Matik Historian Services ###############
+matik-historian-biztech-github-sandbox:
+  type: app
+  mesh: ea1.us
+  namespace: matik-sandbox
+  name: matik-historian-biztech-github-sandbox
+  dependentServices:
+    - host: llm-fusion-hub-staging.llm-fusion-hub-staging
+    - host: matik-api-sandbox.matik-sandbox
+
+matik-historian-incidentio-sandbox:
+  type: app
+  mesh: ea1.us
+  namespace: matik-sandbox
+  name: matik-historian-incidentio-sandbox
+  dependentServices:
+    - host: llm-fusion-hub-staging.llm-fusion-hub-staging
+    - host: matik-api-sandbox.matik-sandbox
+
+matik-historian-jira-sandbox:
+  type: app
+  mesh: ea1.us
+  namespace: matik-sandbox
+  name: matik-historian-jira-sandbox
+  dependentServices:
+    - host: llm-fusion-hub-staging.llm-fusion-hub-staging
+    - host: matik-api-sandbox.matik-sandbox
+
+matik-historian-biztech-github-staging:
+  type: app
+  mesh: ea1.us
+  namespace: matik-staging
+  name: matik-historian-biztech-github-staging
+  dependentServices:
+    - host: llm-fusion-hub-staging.llm-fusion-hub-staging
+    - host: matik-api-staging.matik-staging
+
+matik-historian-incidentio-staging:
+  type: app
+  mesh: ea1.us
+  namespace: matik-staging
+  name: matik-historian-incidentio-staging
+  dependentServices:
+    - host: llm-fusion-hub-staging.llm-fusion-hub-staging
+    - host: matik-api-staging.matik-staging
+
+matik-historian-jira-staging:
+  type: app
+  mesh: ea1.us
+  namespace: matik-staging
+  name: matik-historian-jira-staging
+  dependentServices:
+    - host: llm-fusion-hub-staging.llm-fusion-hub-staging
+    - host: matik-api-staging.matik-staging
+
+matik-historian-incidentio-canary:
+  extends: matik-historian-incidentio-production
+  namespace: matik-canary
+
+matik-historian-jira-canary:
+  extends: matik-historian-jira-production
+  namespace: matik-canary
+
+matik-historian-biztech-github-canary:
+  extends: matik-historian-biztech-github-production
+  namespace: matik-canary
+
+matik-historian-biztech-github-production:
+  type: app
+  mesh: ea1.us
+  namespace: matik-production
+  name: matik-historian-biztech-github-production
+  dependentServices:
+    - host: llm-fusion-hub-production.llm-fusion-hub-production
+    - host: matik-api-production.matik-production
+
+matik-historian-incidentio-production:
+  type: app
+  mesh: ea1.us
+  namespace: matik-production
+  name: matik-historian-incidentio-production
+  dependentServices:
+    - host: llm-fusion-hub-production.llm-fusion-hub-production
+    - host: matik-api-production.matik-production
+
+matik-historian-jira-production:
+  type: app
+  mesh: ea1.us
+  namespace: matik-production
+  name: matik-historian-jira-production
+  dependentServices:
+    - host: llm-fusion-hub-production.llm-fusion-hub-production
+    - host: matik-api-production.matik-production
+############### End Matik Historian Services ###############
+
+############### Matik Enigmatologist Services ###############
+matik-enigmatologist-sandbox:
+  type: app
+  mesh: ea1.us
+  namespace: matik-sandbox
+  name: matik-enigmatologist-sandbox
+  dependentServices:
+    - host: llm-fusion-hub-staging.llm-fusion-hub-staging
+    - host: matik-api-sandbox.matik-sandbox
+
+matik-enigmatologist-staging:
+  type: app
+  mesh: ea1.us
+  namespace: matik-staging
+  name: matik-enigmatologist-staging
+  dependentServices:
+    - host: llm-fusion-hub-staging.llm-fusion-hub-staging
+    - host: matik-api-staging.matik-staging
+
+matik-enigmatologist-production:
+  type: app
+  mesh: ea1.us
+  namespace: matik-production
+  name: matik-enigmatologist-production
+  dependentServices:
+    - host: llm-fusion-hub-production.llm-fusion-hub-production
+    - host: matik-api-production.matik-production
+
+matik-enigmatologist-canary:
+  extends: matik-enigmatologist-production
+  namespace: matik-canary
+############### End Matik Enigmatologist Services ###############
+
+############### Matik Enricher Services ###############
+matik-enricher-sandbox:
+  type: app
+  mesh: ea1.us
+  namespace: matik-sandbox
+  name: matik-enricher-sandbox
+  dependentServices:
+    - host: llm-fusion-hub-staging.llm-fusion-hub-staging
+    - host: matik-api-sandbox.matik-sandbox
+
+matik-enricher-staging:
+  type: app
+  mesh: ea1.us
+  namespace: matik-staging
+  name: matik-enricher-staging
+  dependentServices:
+    - host: llm-fusion-hub-staging.llm-fusion-hub-staging
+    - host: matik-api-staging.matik-staging
+
+matik-enricher-production:
+  type: app
+  mesh: ea1.us
+  namespace: matik-production
+  name: matik-enricher-production
+  dependentServices:
+    - host: llm-fusion-hub-production.llm-fusion-hub-production
+    - host: matik-api-production.matik-production
+
+matik-enricher-canary:
+  extends: matik-enricher-production
+  namespace: matik-canary
+############### End Matik Enricher Services ###############
+
+############### Matik Chronicle Services ###############
+# Chronicler is a Kafka consumer with no inbound HTTP and no API/LLM calls.
+# Only mesh dep is the Kafka bus. SQS access is granted via IAM, not mesh.
+# All environments consume from kafka-prod-a (Yoyo publishes there regardless of env).
+
+matik-chronicler-sandbox:
+  type: app
+  mesh: ea1.us
+  namespace: matik-sandbox
+  name: matik-chronicler-sandbox
+  dependentServices:
+    - host: kafka-prod-a.kafka-prod-a
+
+matik-chronicler-staging:
+  type: app
+  mesh: ea1.us
+  namespace: matik-staging
+  name: matik-chronicler-staging
+  dependentServices:
+    - host: kafka-prod-a.kafka-prod-a
+
+matik-chronicler-production:
+  type: app
+  mesh: ea1.us
+  namespace: matik-production
+  name: matik-chronicler-production
+  dependentServices:
+    - host: kafka-prod-a.kafka-prod-a
+
+# matik-chronicler-canary:
+#   extends: matik-chronicler-production
+#   namespace: matik-canary
+############### End Matik Chronicle Services ###############
+
+############### Matik API Services ###############
+matik-api-sandbox:
+  type: service
+  mesh: ea1.us
+  namespace: matik-sandbox
+  ports:
+    http-8080:
+      protocol: http
+      number: 8080
+      authz:
+        - allows:
+            - matik-historian-biztech-github-sandbox.matik-sandbox
+            - matik-historian-incidentio-sandbox.matik-sandbox
+            - matik-historian-jira-sandbox.matik-sandbox
+            - matik-enigmatologist-sandbox.matik-sandbox
+            - matik-enricher-sandbox.matik-sandbox
+            - matik-mcp-sandbox.matik-sandbox
+            - matik-integration-tests-sandbox.matik-sandbox
+          ldapAllows:
+            - "matik.engineering.airbnb.com"
+      devAccessName: api-matik-sandbox
+  dependentServices:
+    - host: biztech-master.proxysql-production
+
+matik-api-staging:
+  type: service
+  mesh: ea1.us
+  namespace: matik-staging
+  ports:
+    http-8080:
+      protocol: http
+      number: 8080
+      authz:
+        - allows:
+            - matik-historian-biztech-github-staging.matik-staging
+            - matik-historian-incidentio-staging.matik-staging
+            - matik-historian-jira-staging.matik-staging
+            - matik-enigmatologist-staging.matik-staging
+            - matik-enricher-staging.matik-staging
+            - matik-mcp-staging.matik-staging
+            - matik-integration-tests-staging.matik-staging
+          ldapAllows:
+            - "matik.engineering.airbnb.com"
+      devAccessName: api-matik-staging
+  dependentServices:
+    - host: biztech-master.proxysql-production
+
+matik-api-production:
+  type: service
+  mesh: ea1.us
+  namespace: matik-production
+  ports:
+    http-8080:
+      protocol: http
+      number: 8080
+      authz:
+        - allows:
+            - matik-historian-biztech-github-production.matik-production
+            - matik-historian-incidentio-production.matik-production
+            - matik-historian-jira-production.matik-production
+            - matik-enigmatologist-production.matik-production
+            - matik-enricher-production.matik-production
+            - matik-mcp-production.matik-production
+            - matik-integration-tests-production.matik-production
+            # Canary allows
+            - matik-historian-biztech-github-canary.matik-canary
+            - matik-historian-incidentio-canary.matik-canary
+            - matik-historian-jira-canary.matik-canary
+            - matik-enigmatologist-canary.matik-canary
+            - matik-enricher-canary.matik-canary
+            - matik-mcp-canary.matik-canary
+            - matik-integration-tests-canary.matik-canary
+          ldapAllows:
+            - "matik.engineering.airbnb.com"
+      devAccessName: api-matik
+  dependentServices:
+    - host: biztech-master.proxysql-production
+
+matik-api-canary:
+  extends: matik-api-production
+  namespace: matik-canary
+############### End Matik API Services ###############
+
+############### Matik MCP Server Services ###############
+matik-mcp-sandbox:
+  type: service
+  mesh: ea1.us
+  namespace: matik-sandbox
+  dependentServices:
+    - host: matik-api-sandbox.matik-sandbox
+    - host: presto-gateway-production.presto-gateway-production
+    - host: mofi-production.mofi-production
+  ports:
+    http-8080:
+      protocol: http
+      number: 8080
+      authz:
+        - allows:
+            - matik-api-sandbox.matik-sandbox
+            - matik-integration-tests-sandbox.matik-sandbox
+          ldapAllows:
+            - "matik.engineering.airbnb.com"
+          svcAcctAllows:
+            - "svc-ops-eng@iap-prod-bc8f.iam.gserviceaccount.com"
+      devAccessName: mcp-matik-sandbox
+
+
+matik-mcp-staging:
+  type: service
+  mesh: ea1.us
+  namespace: matik-staging
+  dependentServices:
+    - host: matik-api-staging.matik-staging
+    - host: presto-gateway-production.presto-gateway-production
+    - host: mofi-production.mofi-production
+  ports:
+    http-8080:
+      protocol: http
+      number: 8080
+      clientOptions:
+        loadBalancing:
+          mode:
+            type: CONSISTENT_HASH
+            consistentHashOptions:
+              headerName: X-GOOG-AUTHENTICATED-USER-EMAIL
+              minimumRingSize: 1024
+          locality:
+            enabled: false
+      authz:
+        - allows:
+            - matik-api-staging.matik-staging
+            - matik-integration-tests-staging.matik-staging
+          ldapAllows:
+            - "matik.engineering.airbnb.com"
+          svcAcctAllows:
+            - "svc-ops-eng@iap-prod-bc8f.iam.gserviceaccount.com"
+      devAccessName: mcp-matik-staging
+
+matik-mcp-production:
+  type: service
+  mesh: ea1.us
+  namespace: matik-production
+  dependentServices:
+    - host: matik-api-production.matik-production
+    - host: presto-gateway-production.presto-gateway-production
+    - host: mofi-production.mofi-production
+  ports:
+    http-8080:
+      protocol: http
+      number: 8080
+      clientOptions:
+        loadBalancing:
+          mode:
+            type: CONSISTENT_HASH
+            consistentHashOptions:
+              headerName: X-GOOG-AUTHENTICATED-USER-EMAIL
+              minimumRingSize: 1024
+          locality:
+            enabled: false
+      authz:
+        - allows:
+            - matik-api-production.matik-production
+            - matik-integration-tests-production.matik-production
+            # Canary allows
+            - matik-api-canary.matik-canary
+            - matik-integration-tests-canary.matik-canary
+          ldapAllows:
+            - "matik.engineering.airbnb.com"
+          svcAcctAllows:
+            - "svc-ops-eng@iap-prod-bc8f.iam.gserviceaccount.com"
+      devAccessName: mcp-matik
+
+matik-mcp-canary:
+  extends: matik-mcp-production
+  namespace: matik-canary
+
+############### End Matik MCP Server Services ###############
+
+############### Pokey Integration Test Jobs ###############
+
+matik-matik-integration-tests-sandbox:
+  type: app
+  mesh: ea1.us
+  namespace: matik-sandbox
+  name: matik-integration-tests-sandbox
+  dependentServices:
+    - host: matik-api-sandbox.matik-sandbox
+    - host: matik-mcp-sandbox.matik-sandbox
+
+matik-matik-integration-tests-staging:
+  type: app
+  mesh: ea1.us
+  namespace: matik-staging
+  name: matik-integration-tests-staging
+  dependentServices:
+    - host: matik-api-staging.matik-staging
+    - host: matik-mcp-staging.matik-staging
+
+matik-matik-integration-tests-production:
+  type: app
+  mesh: ea1.us
+  namespace: matik-production
+  name: matik-integration-tests-production
+  dependentServices:
+    - host: matik-api-production.matik-production
+    - host: matik-mcp-production.matik-production
+
+############# End Pokey Integration Test Jobs ###############
+
+############### Matik DBManager Services ###############
+matik-dbmanager-sandbox:
+  type: service
+  mesh: ea1.us
+  namespace: matik-sandbox
+  name: matik-dbmanager-sandbox
+  ports:
+    http-8080:
+      protocol: http
+      number: 8080
+      authz:
+        - ldapAllows:
+            - "matik.engineering.airbnb.com"
+      devAccessName: dbmanager-matik-sandbox
+  dependentServices:
+    - host: biztech-master.proxysql-production
+    - host: biztech-replica.proxysql-production
+
+############### End Matik DBManager Services ###############
+
+############### Matik Migrator Services ###############
+matik-migrator-sandbox:
+  type: app
+  mesh: ea1.us
+  namespace: matik-sandbox
+  name: matik-migrator-sandbox
+  dependentServices:
+    - host: biztech-master.proxysql-production
+
+matik-migrator-staging:
+  type: app
+  mesh: ea1.us
+  namespace: matik-staging
+  name: matik-migrator-staging
+  dependentServices:
+    - host: biztech-master.proxysql-production
+
+matik-migrator-production:
+  type: app
+  mesh: ea1.us
+  namespace: matik-production
+  name: matik-migrator-production
+  dependentServices:
+    - host: biztech-master.proxysql-production
+
+matik-migrator-canary:
+  extends: matik-migrator-production
+  namespace: matik-canary
+############### End Matik Migrator Services ###############
+
+############### Matik Audit Services ###############
+matik-audit-root-cause-sandbox:
+  type: app
+  mesh: ea1.us
+  namespace: matik-sandbox
+  name: matik-audit-root-cause-sandbox
+  egressConfig:
+    enabled: true
+  dependentServices:
+    - host: llm-fusion-hub-staging.llm-fusion-hub-staging
+    - host: biztech-master.proxysql-production
+    # BraintrustClient always targets the production proxy, regardless of
+    # our own env.
+    - host: braintrust-proxy-production.braintrust-proxy-production
+    # Mints the IAT that authenticates the call above.
+    - host: hunter2s-production.hunter2s-production
+
+matik-audit-root-cause-staging:
+  type: app
+  mesh: ea1.us
+  namespace: matik-staging
+  name: matik-audit-root-cause-staging
+  egressConfig:
+    enabled: true
+  dependentServices:
+    - host: llm-fusion-hub-staging.llm-fusion-hub-staging
+    - host: biztech-master.proxysql-production
+    # BraintrustClient always targets the production proxy, regardless of
+    # our own env.
+    - host: braintrust-proxy-production.braintrust-proxy-production
+    # Mints the IAT that authenticates the call above. ServiceIatCredential's
+    # _endpoint_factory (airbnb_identity/credentials/iat.py) routes to
+    # hunter2s-staging, not hunter2s-production, whenever "staging" appears in
+    # the pod's own k8s namespace -- this must match that, not the sandbox/
+    # production entries' host.
+    - host: '*.hunter2s-staging'
+
+matik-audit-root-cause-production:
+  type: app
+  mesh: ea1.us
+  namespace: matik-production
+  name: matik-audit-root-cause-production
+  egressConfig:
+    enabled: true
+  dependentServices:
+    - host: llm-fusion-hub-production.llm-fusion-hub-production
+    - host: biztech-master.proxysql-production
+    # BraintrustClient always targets the production proxy, regardless of
+    # our own env.
+    - host: braintrust-proxy-production.braintrust-proxy-production
+    # Mints the IAT that authenticates the call above.
+    - host: hunter2s-production.hunter2s-production
+############### End Matik Audit Services ###############
+
+############### Matik Scribe Services ###############
+matik-migrator-downgrade-sandbox:
+  type: app
+  mesh: ea1.us
+  namespace: matik-sandbox
+  name: matik-migrator-downgrade-sandbox
+  dependentServices:
+    - host: biztech-master.proxysql-production
+
+matik-migrator-downgrade-staging:
+  type: app
+  mesh: ea1.us
+  namespace: matik-staging
+  name: matik-migrator-downgrade-staging
+  dependentServices:
+    - host: biztech-master.proxysql-production
+############### End Matik Migrator Services ###############
+
+############### Matik Scribe Services ###############
+matik-scribe-high-sandbox:
+  type: app
+  mesh: ea1.us
+  namespace: matik-sandbox
+  name: matik-scribe-high-sandbox
+  dependentServices:
+    - host: biztech-master.proxysql-production
+
+matik-scribe-medium-sandbox:
+  type: app
+  mesh: ea1.us
+  namespace: matik-sandbox
+  name: matik-scribe-medium-sandbox
+  dependentServices:
+    - host: biztech-master.proxysql-production
+
+matik-scribe-low-sandbox:
+  type: app
+  mesh: ea1.us
+  namespace: matik-sandbox
+  name: matik-scribe-low-sandbox
+  dependentServices:
+    - host: biztech-master.proxysql-production
+
+matik-scribe-high-staging:
+  type: app
+  mesh: ea1.us
+  namespace: matik-staging
+  name: matik-scribe-high-staging
+  dependentServices:
+    - host: biztech-master.proxysql-production
+
+matik-scribe-medium-staging:
+  type: app
+  mesh: ea1.us
+  namespace: matik-staging
+  name: matik-scribe-medium-staging
+  dependentServices:
+    - host: biztech-master.proxysql-production
+
+matik-scribe-low-staging:
+  type: app
+  mesh: ea1.us
+  namespace: matik-staging
+  name: matik-scribe-low-staging
+  dependentServices:
+    - host: biztech-master.proxysql-production
+
+matik-scribe-high-production:
+  type: app
+  mesh: ea1.us
+  namespace: matik-production
+  name: matik-scribe-high-production
+  dependentServices:
+    - host: biztech-master.proxysql-production
+
+matik-scribe-medium-production:
+  type: app
+  mesh: ea1.us
+  namespace: matik-production
+  name: matik-scribe-medium-production
+  dependentServices:
+    - host: biztech-master.proxysql-production
+
+matik-scribe-low-production:
+  type: app
+  mesh: ea1.us
+  namespace: matik-production
+  name: matik-scribe-low-production
+  dependentServices:
+    - host: biztech-master.proxysql-production
+
+matik-scribe-high-canary:
+  extends: matik-scribe-high-production
+  namespace: matik-canary
+
+matik-scribe-medium-canary:
+  extends: matik-scribe-medium-production
+  namespace: matik-canary
+
+matik-scribe-low-canary:
+  extends: matik-scribe-low-production
+  namespace: matik-canary
+############### End Matik Scribe Services ###############

@@ -1,0 +1,64 @@
+---
+# Common configuration for Matik Chronicler.
+# Chronicler is a long-running Python Kafka consumer that subscribes to Yoyo
+# callback topics and routes events to the Scribe HP and Enricher SQS queues.
+
+common:
+  environment: {{ .Env.Name }}
+  log_level: INFO
+
+chronicler:
+  # Kafka consumer settings. Connects directly to the Kafka bus via AirMesh —
+  # there is no Omnes HTTP-forwarding sidecar for Python at Airbnb. See ADR 018.
+  kafka:
+    bootstrap_servers: "{{ .Env.Params.chronicler.kafka.bootstrap_servers }}"
+    group_id: "{{ .Env.Params.chronicler.kafka.group_id }}"
+    auto_offset_reset: "{{ .Env.Params.chronicler.kafka.auto_offset_reset }}"
+    poll_timeout_seconds: {{ .Env.Params.chronicler.kafka.poll_timeout_seconds }}
+    topics: {{ .Env.Params.chronicler.kafka.topics | toJson }}
+
+  # HMAC secret for verifying X-Hub-Signature-256 on inbound GHE webhook events.
+  # Yoyo does NOT validate signatures — Chronicler is the trust boundary.
+  # Empty/missing means validation is skipped (only acceptable for sandbox
+  # bootstrap before syseng provisions the webhook). Provisioned via secret-lair
+  # under key `chronicler.ghe_webhook_secret` (see _infra/secret-lair/*.json).
+  github_webhook_secret: '{{ .App.Secrets.chronicler.ghe_webhook_secret | default "" }}'
+
+  # Svix endpoint secret (whsec_...) used to verify Incident.io webhook
+  # signatures. The chronicler delegates to the official `svix` Python SDK.
+  # Provisioned via secret-lair under key `chronicler.incidentio_webhook_secret`.
+  incidentio_webhook_secret: '{{ .App.Secrets.chronicler.incidentio_webhook_secret | default "" }}'
+
+  # HMAC secret for verifying X-Matik-Signature-256 on the generic Matik
+  # webhook (external_service_type matik_generic_webhook_events /
+  # matik_sandbox_generic_webhook_events, e.g. OpsBot's incident-channel-summary
+  # feed) — a webhook Matik originates itself, unlike the vendor webhooks above.
+  # Provisioned via secret-lair under key `chronicler.generic_webhook_secret`.
+  generic_webhook_secret: '{{ .App.Secrets.chronicler.generic_webhook_secret | default "" }}'
+
+  # Scribe high-priority queue receives the sanitized base messages. Scribe uses
+  # upsert semantics so duplicate re-publishes on Kafka retry are safe.
+  scribe_queue_url: "{{ .Env.Params.scribe.high_priority.sqs_queue_url }}"
+  scribe_queue_region: "{{ .Env.Params.scribe.sqs_queue_region }}"
+
+  # Enricher queue receives LLM-enrichment requests. Optional — if omitted,
+  # only base messages flow to Scribe.
+  enricher_queue_url: "{{ .Env.Params.enricher.enricher_queue_url }}"
+  enricher_queue_region: "{{ .Env.Params.enricher.sqs_queue_region }}"
+
+# GitHub Enterprise app credentials used ONLY to fetch a merged PR's
+# conversation comments at webhook time (webhook payloads omit comments). This
+# is read-only — no Facade/crawler use. The private key is app-scoped and must
+# be granted to the chronicler app in secret-lair under
+# `biztech_github.ghe_app_private_key`; until then comment-fetching is disabled
+# and GHE PRs are enriched from the description alone (the historian crawl folds
+# in comments later). All other fields come from env-level params shared with
+# the historian.
+biztech_github:
+  ghe_app_private_key: '{{ .App.Secrets.biztech_github.ghe_app_private_key | default "" }}'
+  ghe_base_url: {{ .Env.Params.biztech_github.ghe_base_url }}
+  ghe_api_path: {{ .Env.Params.biztech_github.ghe_api_path }}
+  ghe_upload_path: {{ .Env.Params.biztech_github.ghe_upload_path }}
+  ghe_app_client_id: {{ .Env.Params.biztech_github.ghe_app_client_id }}
+  ghe_app_installation_id: {{ .Env.Params.biztech_github.ghe_app_installation_id }}
+  ghe_app_id: {{ .Env.Params.biztech_github.ghe_app_id }}

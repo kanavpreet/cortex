@@ -1,0 +1,239 @@
+# ⚠️  FICTIONAL DATA — NOT REAL EVENTS.
+# Golden rows for the github-pr-summary summary eval. Synthetic, inspired by real Biztech
+# data; every name/id/date is invented. Some `input` rows embed fake PII so the
+# pii_safe scorer has something to catch — the `expected` gold summaries never do.
+# `input` fields mirror exactly what the enricher sends to the LLM.
+
+- input:
+    original_description: |-
+      ITE-900100: int-401 add employee-sync properties (HR, chat, api-gw):::**Ticket**: ITE-900100
+
+      ## Summary
+      - Adds HR-system, chat, api-gw, cache, and check properties to the int-401 config (dev/stage/prod) for the employee-sync bulk load flow migrated from int-409.
+      - All keys use the `int401` namespace.
+
+      ## Context
+      int-409 is being decommissioned and the bulk employee-sync flow moves to int-401.:::comments:
+  expected: Adds HR-system, chat, api-gw, cache, and check properties (under the int401 namespace) to the int-401 config across dev, stage, and prod to support the employee-sync bulk load flow being migrated from the decommissioned int-409.
+  metadata:
+    reference_id: Airbnb-ITX/infra-config#410
+    repo: Airbnb-ITX/infra-config
+    merged_at: '2026-06-22'
+    state: closed
+
+- input:
+    original_description: 'Fix proxy path for the notebook proxy (no leading slash):::The runtime forwards the full path including the base path to the pod, so `proxy.path` must be `notebook-proxy/*` with no leading slash to match. Pattern taken from the finance proxy which uses `proxy.path=finance/*`.:::comments:'
+  expected: Fixes the notebook proxy's proxy.path to drop the leading slash (notebook-proxy/*) so it matches the full path the runtime forwards including the base path, following the existing finance-proxy pattern.
+  metadata:
+    reference_id: Airbnb-ITX/infra-config#409
+    repo: Airbnb-ITX/infra-config
+    merged_at: '2026-06-19'
+    state: closed
+
+- input:
+    original_description: |-
+      feat(codeowners): add CODEOWNERS and monitor the portal repo for policy overrides:::## Summary
+      - Add a CODEOWNERS file assigning the systems team as default owner.
+      - Add this repo to the policy-override alert monitor.
+
+      ## Test plan
+      - [ ] Verify CODEOWNERS is recognized.
+      - [ ] Verify policy-override events trigger the alert.:::comments:Plan summary — no resource deletions. Review the changes before approving.
+  expected: Adds a CODEOWNERS file making the systems team the default owner of the portal repo and adds the repo to the policy-override alert monitor. The Terraform plan was reviewed and contained no resource deletions.
+  metadata:
+    reference_id: Airbnb-ITX/terraform-app-portal#140
+    repo: Airbnb-ITX/terraform-app-portal
+    merged_at: '2026-06-23'
+    state: closed
+
+- input:
+    original_description: |-
+      feat(alerts): add violating commit SHA and link to the policy-override alert:::## Summary
+      - Add a script field to extract the after-commit SHA from the log message.
+      - Add a script field to build the direct commit URL.
+      - Update the alert message template to include the SHA and a clickable link.
+
+      ## Test plan
+      - [ ] Verify the monitor fires on a policy-override event.:::comments:Plan summary — no resource deletions. Review the changes before approving.
+  expected: Enhances the policy-override alert to include the violating commit SHA and a clickable commit link by adding script fields for the SHA and URL and updating the alert message template. The Terraform plan contained no resource deletions.
+  metadata:
+    reference_id: Airbnb-ITX/terraform-app-portal#139
+    repo: Airbnb-ITX/terraform-app-portal
+    merged_at: '2026-06-10'
+    state: closed
+
+- input:
+    original_description: |-
+      fix(alerts): exclude the automation bot from the policy-override alert:::## Summary
+      - Add a must-not clause to exclude the `ci-automation[bot]` actor from triggering the policy-override alert.
+      - Update the query comment to reflect the exclusion.
+
+      ## Test plan
+      - [ ] Verify the alert no longer fires for the bot.
+      - [ ] Verify it still fires for other actors.:::comments:Plan summary — no resource deletions. Review the changes before approving.
+  expected: Excludes the ci-automation bot actor from triggering the policy-override alert by adding a must-not clause to the query, so the alert still fires for other actors. The Terraform plan contained no resource deletions.
+  metadata:
+    reference_id: Airbnb-ITX/terraform-app-portal#137
+    repo: Airbnb-ITX/terraform-app-portal
+    merged_at: '2026-04-30'
+    state: closed
+
+- input:
+    original_description: Upgrade JDK 8 to address a security vulnerability:::See the linked ticket. JDK 8u231 and earlier bundle a vulnerable version of a transitive library; this PR installs a newer JDK 8 update to address it. This is the cookbook used by the production build hosts.:::comments:Reviewed and approved by Marcus Feldt (marcus.feldt@example-corp.test).
+  expected: Upgrades the JDK 8 version installed by the cookbook to address a security vulnerability, since JDK 8u231 and earlier bundle a vulnerable transitive library. Targets the cookbook used by the production build hosts.
+  metadata:
+    reference_id: Airbnb-ITX/build-server-cookbook#150
+    repo: Airbnb-ITX/build-server-cookbook
+    merged_at: '2026-03-12'
+    state: closed
+
+- input:
+    original_description: |-
+      feat(alerts): add repo name to the policy-override alert:::## Summary
+      - Add a script field to extract the repo name from the audit log.
+      - Include the repo name in the alert message for quicker identification.
+      - Document the equivalent query as a comment.:::comments:
+  expected: Adds the repository name to the policy-override alert by extracting a repo script field from the audit log and including it in the alert message for quicker identification of the source repo, and documents the equivalent query in a comment.
+  metadata:
+    reference_id: Airbnb-ITX/terraform-app-portal#135
+    repo: Airbnb-ITX/terraform-app-portal
+    merged_at: '2026-04-20'
+    state: closed
+
+- input:
+    original_description: |-
+      feat(alerts): add timestamp and override-reason fields to the policy-override alert:::- Extract the timestamp via bracket notation to fix an empty timestamp.
+      - Extract override-reason messages from the reasons array.
+      - Reorder the alert fields.:::comments:
+  expected: Improves the policy-override alert by extracting the timestamp via bracket notation to fix an empty timestamp, pulling override-reason messages from the reasons array, and reordering the alert fields.
+  metadata:
+    reference_id: Airbnb-ITX/terraform-app-portal#133
+    repo: Airbnb-ITX/terraform-app-portal
+    merged_at: '2026-03-11'
+    state: closed
+
+- input:
+    original_description: |-
+      chore: revert to single-subnet deployment for replacement infra:::## Summary
+      Updates the production load balancer and compute deployment with improved naming, a simplified single-subnet topology, and disabled bootstrap for manual configuration.
+
+      ## Changes
+      - Load balancer now deploys only to zone-1 (removed zone-2).
+      - Frontend instances follow the same naming convention.:::comments:
+  expected: 'Reworks the production load balancer and compute deployment: simplifies subnet topology so the load balancer and frontend instances deploy only to zone-1 (removing zone-2), applies improved naming conventions, and disables bootstrap in favor of manual configuration.'
+  metadata:
+    reference_id: Airbnb-ITX/terraform-app-chef#220
+    repo: Airbnb-ITX/terraform-app-chef
+    merged_at: '2025-11-17'
+    state: closed
+
+- input:
+    original_description: |-
+      fix: update the health check path on the load balancer target group:::## Summary
+      Fixes the production load balancer target-group health check by pointing the health check path to the correct `/_status` endpoint, so health checks validate the service properly.:::comments:
+  expected: Fixes the production load balancer target-group health check by pointing the health check path to the correct /_status endpoint, so health checks validate the service properly.
+  metadata:
+    reference_id: Airbnb-ITX/terraform-app-chef#222
+    repo: Airbnb-ITX/terraform-app-chef
+    merged_at: '2025-11-19'
+    state: closed
+
+- input:
+    original_description: |-
+      feat: re-add the second subnet to the prod load balancer config:::## Summary
+      Re-adds zone-2 to the production load balancer configuration so it spans both zone-1 and zone-2, improving high availability across availability zones.:::comments:
+  expected: Re-adds the second subnet (zone-2) to the production load balancer configuration so the load balancer spans both zone-1 and zone-2, improving high availability across availability zones.
+  metadata:
+    reference_id: Airbnb-ITX/terraform-app-chef#216
+    repo: Airbnb-ITX/terraform-app-chef
+    merged_at: '2025-11-17'
+    state: closed
+
+- input:
+    original_description: 'ITE-910060: prod branch cleanup — import remaining security groups:::Linked tickets cover importing the remaining production build security groups (master and worker) into Terraform.:::comments:'
+  expected: Imports the remaining production build security groups (master and worker) into Terraform as part of prod branch cleanup.
+  metadata:
+    reference_id: Airbnb-ITX/terraform-app-builds#390
+    repo: Airbnb-ITX/terraform-app-builds
+    merged_at: '2025-08-27'
+    state: closed
+
+- input:
+    original_description: 'ITE-910030: decommission the legacy build agents:::Linked tickets cover decommissioning the legacy-managed prod build agents and related resources.:::comments:Verifying the security group being deleted is not in use before removal.'
+  expected: Decommissions the legacy-managed production build agents and related resources, after verifying the security group being deleted is no longer in use.
+  metadata:
+    reference_id: Airbnb-ITX/terraform-app-builds#380
+    repo: Airbnb-ITX/terraform-app-builds
+    merged_at: '2025-04-24'
+    state: closed
+
+- input:
+    original_description: |-
+      Update README with current status and documentation:::## Summary
+      - Add an Active status badge reflecting the recent deployment.
+      - Document the architecture: 2 frontend instances, 3 backend instances, a load balancer.
+      - List the dev/stage/prod workspaces and managed resources.
+      - Add team ownership and Tier 0 criticality.:::comments:
+  expected: 'Updates the README to reflect current status: adds an Active status badge, documents the architecture (2 frontend and 3 backend instances behind a load balancer), lists the dev/stage/prod workspaces and managed resources, and records team ownership and Tier 0 criticality.'
+  metadata:
+    reference_id: Airbnb-ITX/terraform-app-chef#224
+    repo: Airbnb-ITX/terraform-app-chef
+    merged_at: '2026-01-28'
+    state: closed
+
+- input:
+    original_description: |-
+      ITE-900050: add regional routing test config:::## Summary
+      Adds a regional routing test configuration for the api-gw connector, gated behind a feature flag so it is inert until explicitly enabled. Reviewed by Priya Raman (priya.raman@example-corp.test).:::comments:Looks good — confirmed the flag defaults to off.
+  expected: Adds a regional routing test configuration for the api-gw connector, gated behind a feature flag so it stays inert until explicitly enabled. A reviewer confirmed the flag defaults to off.
+  metadata:
+    reference_id: Airbnb-ITX/infra-config#405
+    repo: Airbnb-ITX/infra-config
+    merged_at: '2026-06-18'
+    state: closed
+
+# --- Sparse PRs: title only, empty body, no comments. ---
+- input:
+    original_description: 'Update api.properties::::::comments:'
+  expected: A change updating the api.properties file. No description or discussion was provided, so the specific changes are not detailed in the source.
+  metadata:
+    reference_id: Airbnb-ITX/infra-config#412
+    repo: Airbnb-ITX/infra-config
+    merged_at: '2026-06-24'
+    state: closed
+
+- input:
+    original_description: 'Feature/regional info test::::::comments:'
+  expected: A change on a regional info test feature branch. No description or discussion was provided, so the specific changes are not detailed in the source.
+  metadata:
+    reference_id: Airbnb-ITX/infra-config#411
+    repo: Airbnb-ITX/infra-config
+    merged_at: '2026-06-24'
+    state: closed
+
+- input:
+    original_description: 'Update stage mail relay for vendor testing::::::comments:'
+  expected: A change updating the staging mail relay for vendor testing. No description or discussion was provided, so the specific changes are not detailed in the source.
+  metadata:
+    reference_id: Airbnb-ITX/infra-config#404
+    repo: Airbnb-ITX/infra-config
+    merged_at: '2026-06-16'
+    state: closed
+
+- input:
+    original_description: 'Enable the passwd ohai plugin::::::comments:'
+  expected: A change to enable the passwd Ohai plugin. No description or discussion was provided, so the specific changes are not detailed in the source.
+  metadata:
+    reference_id: Airbnb-ITX/admin-cookbook#60
+    repo: Airbnb-ITX/admin-cookbook
+    merged_at: '2025-05-14'
+    state: closed
+
+- input:
+    original_description: 'Ite 900020 1::::::comments:'
+  expected: A change referencing ticket ITE-900020. No description or discussion was provided, so the specific changes are not detailed in the source.
+  metadata:
+    reference_id: Airbnb-ITX/admin-cookbook#58
+    repo: Airbnb-ITX/admin-cookbook
+    merged_at: '2026-06-12'
+    state: closed

@@ -1,0 +1,11 @@
+---
+# Facade (LLM Fusion Hub) configuration
+# This is to be used only for local development.
+
+facade:
+  base_url: https://llm-fusion-hub.a.musta.ch/api/v2/proxy/azure/oai
+  resource_bucket: production
+  default_model: ${FACADE_DEFAULT_MODEL}
+  api_version: 2024-12-01-preview
+  iap_token: "${IAP_TOKEN}"
+  mock_mode: ${FACADE_MOCK_MODE}

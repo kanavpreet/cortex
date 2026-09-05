@@ -1,0 +1,56 @@
+---
+
+# Telescope Metrics Configuration
+telescope:
+  enabled: {{ .Env.Params.telescope.enabled }}  # Whether Telescope metrics are enabled
+  tenant_id: {{ .Env.Params.telescope.tenant_id }}  # Telescope tenant ID
+  push_interval_seconds: {{ .Env.Params.telescope.push_interval_seconds }}  # Metrics push interval in seconds
+  otel_endpoint: http://{{ .Env.Params.telescope.otel_endpoint }}  # OTEL endpoint for metrics export
+
+# OpenTelemetry Collector Sidecar Configuration
+# Used for collecting and exporting metrics, traces, and logs
+otelcol_config:
+  # Splice metrics with release sha
+  git_sha_label_allowlist:
+      # api
+      - matik_http_requests_total
+      - matik_http_request_duration_seconds
+      # mcp
+      - matik_mcp_tool_calls_total
+      - matik_mcp_tool_call_duration_seconds
+      - matik_mcp_tool_call_errors_total
+      # chronicler
+      - matik_chronicler_messages_processed_total
+      - matik_chronicler_message_processing_duration_seconds
+      - matik_chronicler_publish_outcome_total
+      - matik_chronicler_kafka_errors_total
+      # scribe
+      - matik_scribe_messages_processed_total
+      - matik_scribe_message_processing_duration_seconds
+      - matik_scribe_dlq_messages_total
+      - matik_scribe_queue_depth
+      # shared SQS consumer health (scribe, enricher, enigmatologist)
+      - matik_sqs_processed_messages_total
+      - matik_sqs_failed_messages_total
+      - matik_sqs_processing_seconds
+      # enigmatologist
+      - matik_correlation_outcomes_total
+      - matik_correlation_duration_seconds
+      # historian (jira / ghe / incidentio cronjobs)
+      - matik_job_executions_total
+      - matik_job_duration_seconds
+      - matik_job_errors_total
+      - matik_job_last_run_timestamp
+      - matik_sqs_messages_published_total
+      - matik_sqs_messages_publish_failed_total
+      # shared infra (api, scribe, enricher, enigmatologist)
+      - matik_db_query_errors_total
+      - matik_client_request_errors_total
+      - matik_facade_call_errors_total
+  # opentelemetry-lua supports otlp over http, but not grpc
+  full_custom_config:
+    receivers:
+      otlp:  # OpenTelemetry Protocol receiver
+        protocols:
+          http:
+            endpoint: {{ .Env.Params.telescope.otel_endpoint }}  # OTLP HTTP endpoint (localhost only for security)

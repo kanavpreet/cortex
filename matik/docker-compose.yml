@@ -1,0 +1,490 @@
+services:
+  # MySQL 8.x Database
+  mysql:
+    image: mysql:8.0
+    container_name: matik-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-matik}
+      MYSQL_USER: ${MYSQL_USER:-matik_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-matik_password}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --max_connections=1500
+      - --max_connect_errors=10000
+      - --wait_timeout=28800
+      - --interactive_timeout=28800
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - matik-network
+
+  # Adminer - Database Management UI
+  adminer:
+    image: adminer:latest
+    container_name: matik-adminer
+    restart: unless-stopped
+    ports:
+      - "${ADMINER_PORT:-8081}:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql
+      ADMINER_DESIGN: nette
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - matik-network
+
+  # Database Migrator
+  migrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: matik-migrator
+    command: ["python", "-m", "migrator", "upgrade"]
+    restart: "no"
+    env_file:
+      - .env.local
+    environment:
+      - SERVICE_NAME=migrator
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=${MYSQL_USER:-matik_user}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-matik_password}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-matik}
+    volumes:
+      - ./local-configs:/config:ro
+      - ./.env.local:/app/.env:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - matik-network
+
+  # Historian Jobs - run manually with: docker compose run historian_<source>
+  historian_incidentio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: matik-historian-incidentio
+    command: ["python", "-m", "historian.incidentio"]
+    restart: "no"
+    profiles:
+      - historian
+    environment:
+      - SERVICE_NAME=historian_incidentio
+    volumes:
+      - ./local-configs:/config:ro
+      - ./.env.local:/app/.env:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    networks:
+      - matik-network
+
+  historian_jira:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: matik-historian-jira
+    command: ["python", "-m", "historian.jira"]
+    restart: "no"
+    profiles:
+      - historian
+    env_file:
+      - .env.local
+    environment:
+      - SERVICE_NAME=historian_jira
+    volumes:
+      - ./local-configs:/config:ro
+      - ./.env.local:/app/.env:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    networks:
+      - matik-network
+
+  historian_biztech_github:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: matik-historian-biztech-github
+    command: ["python", "-m", "historian.biztech_github"]
+    restart: "no"
+    profiles:
+      - historian
+    environment:
+      - SERVICE_NAME=historian_biztech_github
+    volumes:
+      - ./local-configs:/config:ro
+      - ./.env.local:/app/.env:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    networks:
+      - matik-network
+
+  # Root Cause Coverage Audit - run manually with: docker compose --profile audit run root_cause_audit
+  root_cause_audit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: matik-audit-root-cause
+    command: ["python", "-m", "audit.root_cause_coverage"]
+    restart: "no"
+    profiles:
+      - audit
+    env_file:
+      - .env.local
+    environment:
+      - SERVICE_NAME=root_cause_audit
+    volumes:
+      - ./local-configs:/config:ro
+      - ./.env.local:/app/.env:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    networks:
+      - matik-network
+
+  # chronicler:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: matik-chronicler
+  #   command: ["python", "-m", "chronicler"]
+  #   restart: unless-stopped
+  #   environment:
+  #     - SERVICE_NAME=chronicler
+  #   depends_on:
+  #     mysql:
+  #       condition: service_healthy
+  #     migrator:
+  #       condition: service_completed_successfully
+  #   networks:
+  #     - matik-network
+  #   # volumes:
+  #   #   - ./config:/config:ro
+  #   #   - ./.env:/app/.env:ro
+
+  # LocalStack - Local AWS services (SQS) for enricher and enigmatologist
+  localstack:
+    image: localstack/localstack:3
+    container_name: matik-localstack
+    environment:
+      - SERVICES=sqs
+      - AWS_DEFAULT_REGION=us-east-1
+      - SQS_ENDPOINT_STRATEGY=path
+    ports:
+      - "4566:4566"
+    volumes:
+      - "./local-configs/localstack-init.sh:/etc/localstack/init/ready.d/init-sqs.sh"
+      - localstack_data:/var/lib/localstack
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - matik-network
+
+  # Enricher - LLM enrichment service
+  enricher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: matik-enricher
+    command: ["python", "-m", "enricher"]
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      - SERVICE_NAME=enricher
+    volumes:
+      - ./local-configs:/config:ro
+      - ./.env.local:/app/.env:ro
+    depends_on:
+      localstack-init:
+        condition: service_completed_successfully
+      mysql:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+      api:
+        condition: service_healthy
+    networks:
+      - matik-network
+
+  # LocalStack init - Create SQS queues
+  localstack-init:
+    image: amazon/aws-cli:latest
+    container_name: matik-localstack-init
+    restart: "no"
+    entrypoint: >
+      sh -c "
+        until aws --endpoint-url=http://localstack:4566 sqs list-queues --region us-east-1 2>/dev/null; do
+          echo 'Waiting for LocalStack...'; sleep 2;
+        done;
+        aws --endpoint-url=http://localstack:4566 sqs create-queue --queue-name matik-enricher-dlq --region us-east-1;
+        aws --endpoint-url=http://localstack:4566 sqs create-queue --queue-name matik-enricher --region us-east-1 --attributes '{\"VisibilityTimeout\":\"300\",\"RedrivePolicy\":\"{\\\"deadLetterTargetArn\\\":\\\"arn:aws:sqs:us-east-1:000000000000:matik-enricher-dlq\\\",\\\"maxReceiveCount\\\":\\\"3\\\"}\"}';
+        aws --endpoint-url=http://localstack:4566 sqs create-queue --queue-name matik-enigmatologist --region us-east-1;
+        aws --endpoint-url=http://localstack:4566 sqs create-queue --queue-name matik-scribe-high-priority-dlq --region us-east-1;
+        aws --endpoint-url=http://localstack:4566 sqs create-queue --queue-name matik-scribe-high-priority --region us-east-1 --attributes '{\"RedrivePolicy\":\"{\\\"deadLetterTargetArn\\\":\\\"arn:aws:sqs:us-east-1:000000000000:matik-scribe-high-priority-dlq\\\",\\\"maxReceiveCount\\\":\\\"5\\\"}\"}';
+        aws --endpoint-url=http://localstack:4566 sqs create-queue --queue-name matik-scribe-medium-priority-dlq --region us-east-1;
+        aws --endpoint-url=http://localstack:4566 sqs create-queue --queue-name matik-scribe-medium-priority --region us-east-1 --attributes '{\"RedrivePolicy\":\"{\\\"deadLetterTargetArn\\\":\\\"arn:aws:sqs:us-east-1:000000000000:matik-scribe-medium-priority-dlq\\\",\\\"maxReceiveCount\\\":\\\"5\\\"}\"}';
+        aws --endpoint-url=http://localstack:4566 sqs create-queue --queue-name matik-scribe-low-priority-dlq --region us-east-1;
+        aws --endpoint-url=http://localstack:4566 sqs create-queue --queue-name matik-scribe-low-priority --region us-east-1 --attributes '{\"RedrivePolicy\":\"{\\\"deadLetterTargetArn\\\":\\\"arn:aws:sqs:us-east-1:000000000000:matik-scribe-low-priority-dlq\\\",\\\"maxReceiveCount\\\":\\\"5\\\"}\"}';
+        echo 'All queues created successfully';
+      "
+    environment:
+      - SERVICE_NAME=enricher
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    depends_on:
+      localstack:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+      api:
+        condition: service_healthy
+    networks:
+      - matik-network
+
+  # Enigmatologist - Correlation service
+  enigmatologist:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: matik-enigmatologist
+    command: ["python", "-m", "enigmatologist"]
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    volumes:
+      - ./local-configs:/config:ro
+      - ./.env.local:/app/.env:ro
+    environment:
+      - SERVICE_NAME=enigmatologist
+    depends_on:
+      localstack:
+        condition: service_healthy
+    networks:
+      - matik-network
+
+  # Scribe - three dedicated deployments, one per SQS priority lane
+  scribe_high:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: matik-scribe-high
+    command: ["python", "-m", "scribe"]
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      - SERVICE_NAME=scribe-high
+    volumes:
+      - ./local-configs/matik-scribe-high-config.yml:/config/matik-scribe-config.yml:ro
+      - ./.env.local:/app/.env:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+      localstack-init:
+        condition: service_completed_successfully
+    networks:
+      - matik-network
+
+  scribe_medium:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: matik-scribe-medium
+    command: ["python", "-m", "scribe"]
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      - SERVICE_NAME=scribe-medium
+    volumes:
+      - ./local-configs/matik-scribe-medium-config.yml:/config/matik-scribe-config.yml:ro
+      - ./.env.local:/app/.env:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+      localstack-init:
+        condition: service_completed_successfully
+    networks:
+      - matik-network
+
+  scribe_low:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: matik-scribe-low
+    command: ["python", "-m", "scribe"]
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      - SERVICE_NAME=scribe-low
+    volumes:
+      - ./local-configs/matik-scribe-low-config.yml:/config/matik-scribe-config.yml:ro
+      - ./.env.local:/app/.env:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+      localstack-init:
+        condition: service_completed_successfully
+    networks:
+      - matik-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: matik-api
+    command: ["sh", "-c", "python -m uvicorn api.main:app --host 0.0.0.0 --port ${API_PORT:-8080}"]
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.local
+    environment:
+      - SERVICE_NAME=api
+    volumes:
+      - ./local-configs:/config:ro
+      - ./.env.local:/app/.env:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - matik-network
+
+  # MCP Server
+  mcp_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: matik-mcp-server
+    command: ["python", "-m", "mcp_server"]
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    env_file:
+      - .env.local
+    environment:
+      - SERVICE_NAME=mcp_server
+    volumes:
+      - ./local-configs:/config:ro
+      - ./.env.local:/app/.env:ro
+    depends_on:
+      api:
+        condition: service_started
+    networks:
+      - matik-network
+
+  # OpenTelemetry Collector - Receives metrics from services
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: matik-otel-collector
+    restart: unless-stopped
+    command: ["--config=/etc/otel-collector-config.yml"]
+    volumes:
+      - ./local-configs/otel-collector-config.yml:/etc/otel-collector-config.yml:ro
+    ports:
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8889:8889"   # Prometheus exporter
+      - "13133:13133" # Health check
+    networks:
+      - matik-network
+
+# Prometheus - Metrics storage and querying
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: matik-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./local-configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - otel-collector
+    networks:
+      - matik-network
+
+  # Grafana - Metrics visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: matik-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./local-configs/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - matik-network
+
+networks:
+  matik-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  localstack_data:
+    driver: local

@@ -1,0 +1,43 @@
+{
+  "api.service_secret":{
+    "kind":"aws",
+    "key":"classic/matik/common/api.service_secret",
+    "version":"2026-08-04T00:52:21__40e2792d-a0d9-4200-a17b-94d1ed3f4acd",
+    "property":"secret"
+  },
+  "chronicler.ghe_webhook_secret": {
+    "kind": "aws",
+    "key": "classic/matik/common/chronicler.ghe_webhook_secret",
+    "version": "2026-05-21T05:28:32__278d4aca-a674-4e9b-8059-facdc92b7a3b",
+    "property": "secret"
+  },
+  "chronicler.incidentio_webhook_secret": {
+    "kind": "aws",
+    "key": "classic/matik/common/chronicler.incidentio_webhook_secret",
+    "version": "2026-05-20T15:34:45__0ac44b01-73e1-42cf-b397-3dacbd2e014a",
+    "property": "secret"
+  },
+  "chronicler.generic_webhook_secret":{
+    "kind":"aws",
+    "key":"classic/matik/common/chronicler.generic_webhook_secret",
+    "version":"2026-07-20T20:25:19__e48f096e-9408-4ce5-9bcc-b307aad28521",
+    "property":"secret"
+  },
+  "incidentio.api_key": {
+    "kind": "aws",
+    "key": "classic/matik/incidentio.api_key",
+    "version": "2026-03-25T23:35:44__13f17dd9-5db3-4215-a46f-ff8b97135f15"
+  },
+  "jira.password": {
+    "kind": "aws",
+    "key": "classic/matik/jira",
+    "version": "2026-03-25T23:35:44__150e13f6-d060-4608-9749-9d5f980e7531",
+    "property": "password"
+  },
+  "jira.username": {
+    "kind": "aws",
+    "key": "classic/matik/jira",
+    "version": "2026-03-25T23:35:44__150e13f6-d060-4608-9749-9d5f980e7531",
+    "property": "username"
+  }
+}

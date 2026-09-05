@@ -1,0 +1,1 @@
+dockerfile: _infra/kube/images/chronicler.Dockerfile

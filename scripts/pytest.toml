@@ -1,0 +1,25 @@
+[pytest]
+console_output_style = "progress"
+
+# Configure pytest to discover test files with _test.py suffix (like Go/TypeScript)
+python_files = ["*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+testpaths = ["."]
+
+# Coverage - cover all validation modules
+addopts = [
+    "--cov=common",
+    "--cov=validate_configs",
+    "--cov=validate_env_vars",
+    "--cov=validate_yaml_naming",
+    "--cov=dlq_inspector",
+    "--cov-report=term-missing",
+    "--cov=mcp_load_tester",
+    "--cov=opsbot_webhook_tester",
+    "--cov=grafana_dashboard_downloader",
+    "--cov-report=xml",
+    "--cov-report=html",
+    "--cov-report=json",
+    "--cov-fail-under=95"
+]

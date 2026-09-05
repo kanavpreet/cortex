@@ -1,0 +1,101 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.html
+
+# Go workspace file
+go.work
+
+# Dependency directories
+vendor/
+
+# Build output
+bin/
+dist/
+build/
+
+# Compiled script binaries (from go run/build)
+validate-configs
+validate-env-vars
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Python virtual environments
+.venv/
+__pycache__/
+*.pyc
+
+# MacOS
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Infrastructure state
+_infra/terraform/.terraform/
+_infra/terraform/*.tfstate
+_infra/terraform/*.tfstate.backup
+_infra/terraform/.terraform.lock.hcl
+
+# Docker volumes
+mysql_data/
+Dockerfile.kube_gen
+generated-apps
+
+# private keys
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.venv/
+.python-version
+.claude/settings.local.json
+
+# UAT test reports and local config
+integration-tests/pytest/reports/*.html
+integration-tests/pytest/config/local.yml
+
+# Generated release notes / comms drafts (not pushed; regenerated on demand)
+_infra/docs/release/tmp/
+
+# Grafana dashboard JSON downloaded via scripts/grafana_dashboard_downloader
+scripts/grafana_dashboard_downloader/downloads/
+
+# RAG CLI data directory (ChromaDB persist, CSV files)
+data/
+.claude/commands/avengers-assemble.md
+ghe_org.csv
+ghe_repo.csv
+ghe_pr.csv
+incident.csv
+jira_new.csv
+
+temp/

@@ -1,0 +1,62 @@
+---
+workload:
+  cronJob:
+    schedule: '0 6 * * *'
+    restartPolicy: OnFailure
+    concurrencyPolicy: Forbid
+    suspend: false
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 1
+
+mainContainer:
+  name: matik-audit-root-cause
+  imageSpec: audit-dockerfile
+  command:
+    - python
+    - -m
+    - audit.root_cause_coverage
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1000Mi
+      ephemeral-storage: 512Mi
+    limits:
+      memory: 1000Mi
+      ephemeral-storage: 512Mi
+
+  # File mount for matik config and not volume mount for config separation
+  # use volumeMount for directories
+  fileMounts:
+    - filename: matik-audit-root-cause-config.yml
+      mountPath: /app/config/matik-audit-root-cause-config.yml
+    - filename: facade-config.yml
+      mountPath: /app/config/facade-config.yml
+    - filename: bedrock-config.yml
+      mountPath: /app/config/bedrock-config.yml
+    - filename: metrics.yml
+      mountPath: /app/config/metrics.yml
+    - filename: llm-tracing-config.yml
+      mountPath: /app/config/llm-tracing-config.yml
+
+components:
+- name: secrets
+- name: logging
+
+iamRole: matik-staging
+
+# Disable veneur sidecar and rely on otel-collector for all metrics
+disableVeneur: true
+
+supportedCPUArchitectures:
+  - amd64
+  - arm64
+
+environments:
+  staging: {}
+  canary:
+    iamRole: matik-production
+  production:
+    iamRole: matik-production
+  sandbox:
+    iamRole: matik-sandbox

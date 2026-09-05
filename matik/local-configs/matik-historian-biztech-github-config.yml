@@ -1,0 +1,25 @@
+---
+
+biztech_github:
+  page_size: 100
+  cutoff_date: "2025-01-01T00:00:00Z"
+  tracker_lookback_days: 30
+  max_concurrent_repos: 5
+  repo_activity_buffer_minutes: 15
+  ingestible_comment_bots: "jenkins-prod,spacelift-prod"
+  jenkins_review_summary_title: "Review Summary"
+  ghe_app_private_key: "${GHE_PRIVATE_KEY}"
+  ghe_app_private_key_file_name: "${GHE_PRIVATE_KEY_FILE_NAME}"
+  ghe_base_url: ${GHE_BASE_URL}
+  ghe_api_path: ${GHE_API_PATH}
+  ghe_upload_path: ${GHE_UPLOAD_PATH}
+  ghe_app_client_id: ${GHE_CLIENT_ID}
+  ghe_app_installation_id: ${GHE_INSTALLATION_ID}
+  ghe_app_id: ${GHE_APP_ID}
+  ghe_pr_summary_prompt: "${GHE_PR_SUMMARY_PROMPT}"
+  facade_model: ${GHE_FACADE_MODEL}
+  sqs_queue_url: ${SCRIBE_LOW_PRIORITY_QUEUE_URL}
+  sqs_queue_region: 'us-east-1'
+
+artifactory:
+  base_url: ${ARTIFACTORY_BASE_URL}

@@ -1,0 +1,29 @@
+[pytest]
+console_output_style = "progress"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+# Configure pytest to discover test files with _test.py suffix (like Go/TypeScript)
+python_files = ["*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+testpaths = ["."]
+
+# Coverage - cover all service modules at the top level
+addopts = [
+    "--cov=api",
+    "--cov=chronicler",
+    "--cov=enigmatologist",
+    "--cov=enricher",
+    "--cov=historian",
+    "--cov=migrator",
+    "--cov=mcp_server",
+    "--cov=scribe",
+    "--cov=main",
+    "--cov=common",
+    "--cov-report=term-missing",
+    "--cov-report=xml",
+    "--cov-report=html",
+    "--cov-report=json",
+    "--cov-fail-under=90"
+]

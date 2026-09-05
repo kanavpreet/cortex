@@ -1,0 +1,308 @@
+# ⚠️  FICTIONAL DATA — NOT REAL EVENTS.
+# Golden rows for the incidentio-root-cause summary eval. Synthetic, inspired by real Biztech
+# data; every name/id/date is invented. Some `input` rows embed fake PII so the
+# pii_safe scorer has something to catch — the `expected` gold summaries never do.
+# `input` fields mirror exactly what the enricher sends to the LLM.
+
+- input:
+    summary: |-
+      **Problem**: The 'core_platform_team' directory group is only intermittently returned by the directory servers through the access proxy.
+
+      **Impact**: Authentication and authorization failures across several infrastructure components, including the build dashboard and deploy console, as group claims are returned inconsistently. Users see intermittent authz errors.
+
+      **Causes**: Directory replication between the platform and primary directory servers is incomplete, producing inconsistent group-claim propagation.
+
+      **Steps to resolve**: We are restoring directory replication and investigating remaining causes of intermittent group-claim failures.
+    resolution_statement: The platform directory servers were not populating members for the core_platform_team group correctly. The team manually replicated the database from the primary directory servers to the platform servers, which fixed the issue.
+  expected: Incomplete directory replication between the platform and primary directory servers left the platform servers not populating the core_platform_team group members correctly, so group claims were only returned intermittently through the access proxy. This caused intermittent authentication and authorization failures across components including the build dashboard and deploy console. It was resolved by manually replicating the database from the primary directory servers to the platform servers.
+  metadata:
+    reference_id: INC-8201
+    status: closed
+    created_at: '2026-03-17'
+    affected_services: biztech_directory_auth
+
+- input:
+    summary: |-
+      **Problem**: Migrating the metrics-exporter project to the new deploy platform caused a metrics outage. The switch from the old secrets injector to the new secrets manager generated the secret files as a single combined file instead of the multiple files the app expects. The exporter pod was also missing ingress settings for the collector to scrape it.
+
+      **Solution**: The secret-file configuration was fixed and an ingress policy was added to the pod.
+    resolution_statement: The secret definition was fixed so it creates multiple files per secret, as the app expects. The configuration was also updated to allow ingress into the exporter pod.
+  expected: Migrating the metrics-exporter to the new deploy platform switched secret management from the old injector to the new secrets manager, and the configuration produced a single combined secret file instead of the multiple files the application expected; the exporter pod was also missing ingress settings for the collector to scrape it. This broke the flow of metrics. It was resolved by fixing the secret definition to create multiple files and adding an ingress policy to the exporter pod.
+  metadata:
+    reference_id: INC-8190
+    status: closed
+    created_at: '2026-03-10'
+    affected_services: biztech_metrics_exporter
+
+- input:
+    summary: |-
+      **Problem**: The office firewall uses internal DNS for resolution while the cloud provider handles public resolution, which can produce very different DNS responses. The IDE-licensing vendor uses geo-DNS, leading to a mismatch between what the local workstation environment and the firewall resolve to. The mismatch makes traffic fail to match policies and hit an explicit deny.
+
+      **Impact**: Some engineers cannot use the licensed IDE. Already-authenticated IDEs keep working until the next license check-in; new license requests fail and the IDE fails to load.
+
+      **Causes**: A delta between the workstation's DNS resolution and the firewall's resolution caused packets to be dropped.
+
+      **Steps to resolve**: Network engineering added temporary policies allowing traffic from the regional IPs ahead of a permanent fix.
+    resolution_statement: Network engineering added temporary policies to allow traffic from the regional IPs before pushing out a permanent fix.
+  expected: A DNS resolution mismatch between engineers' workstation environment and the office firewall — driven by the firewall using internal DNS while the IDE-licensing vendor serves geo-DNS responses — caused license traffic to not match firewall policies and be dropped by an explicit deny. This blocked engineers from obtaining IDE licenses. Network engineering mitigated it by adding temporary policies to allow traffic from the regional IPs ahead of a permanent fix.
+  metadata:
+    reference_id: INC-8170
+    status: closed
+    created_at: '2026-03-02'
+    affected_services: biztech_ide_licensing
+
+- input:
+    summary: |-
+      **Problem**: Reporting data in the BI dashboards was not updating because new records were missing from the source tables and intermediate tables were refreshing late.
+
+      **Impact**: BI dashboard data was stale and users did not see current information until manual restoration steps were completed.
+
+      **Causes**: The events table reached the maximum value for its 32-bit integer primary key, which blocked new records from being inserted and left downstream tables out of date.
+
+      **Steps to resolve**: We stopped affected jobs, migrated the primary key to a 64-bit integer, restarted imports, and rebuilt the intermediate tables.
+    resolution_statement: Updated the primary key in the affected database to a 64-bit integer and re-triggered the reporting pipeline.
+  expected: The events table reached the maximum value of its 32-bit integer primary key, which blocked new records from being inserted and left the downstream tables feeding the BI dashboards out of date, so reporting data went stale. It was resolved by migrating the primary key to a 64-bit integer and re-triggering the reporting pipeline to rebuild the affected tables.
+  metadata:
+    reference_id: INC-8155
+    status: closed
+    created_at: '2026-02-24'
+    affected_services: biztech_bi_reporting
+
+- input:
+    summary: |-
+      **Problem**: Configuration-management runs failed due to certificate verification errors from an expired certificate authority, causing a sharp drop in agent logs and missed alerts.
+
+      **Impact**: Configuration management did not run for employee devices, blocking config updates to the production fleet. Mac devices resumed after a fix; some Windows devices remained behind until they checked in. No alerts fired because the error prevented logs from being generated.
+
+      **Causes**: The configuration-management certificate authority expired, causing validation failures that prevented runs.
+
+      **Steps to resolve**: We recreated the CA certificate and deployed it to all production compile hosts.
+    resolution_statement: The team recreated the certificates and deployed them to the servers, which fixed the issue.
+  expected: The configuration-management certificate authority (CA) certificate expired, causing certificate verification failures that prevented configuration runs and blocked config updates to the production device fleet. Because the error stopped logs from being generated, log-based monitoring produced no alerts. It was resolved by recreating the CA certificate and deploying it to the production compile hosts.
+  metadata:
+    reference_id: INC-8140
+    status: closed
+    created_at: '2026-02-23'
+    affected_services: biztech_config_management
+
+- input:
+    summary: |-
+      **Problem**: The Quillpad chat tool stopped working for users in production due to backend errors.
+
+      **Impact**: Quillpad chat was broken for all employees in production. Closing and reopening the browser tab restored it for some users.
+
+      **Causes**: An upgrade to one of the browser-storage backends caused unexpected behavior in production.
+
+      **Steps to resolve**: The fix was applied and a workaround (reopen the tab) was shared.
+    resolution_statement: The team reverted the change, which resolved the issue.
+  expected: An upgrade to one of the browser-storage backends caused unexpected behavior in production, producing backend errors that broke the Quillpad chat tool for all employees. It was resolved by reverting the change, with closing and reopening the browser tab as an interim workaround.
+  metadata:
+    reference_id: INC-8120
+    status: closed
+    created_at: '2026-03-20'
+    affected_services: biztech_quillpad
+
+- input:
+    summary: |-
+      **Problem**: Pod restart rate was high in the telemetry-collector-prod namespace due to a misconfigured endpoint.
+
+      **Impact**: No end users reported issues, but the high restart rate affected the telemetry-collector-prod namespace.
+
+      **Causes**: The collector pod was missing the correct endpoint URL, causing errors when building the metrics-export pipelines.
+
+      **Steps to resolve**: We added the correct endpoint URL, which resolved the restarts.
+    resolution_statement: After adding the correct endpoint URL, the pod restart issue was resolved.
+  expected: The collector pod in the telemetry-collector-prod namespace was missing the correct endpoint URL, which caused errors when building the metrics-export pipelines and drove a high pod restart rate. There was no reported end-user impact. It was resolved by adding the correct endpoint URL.
+  metadata:
+    reference_id: INC-8110
+    status: closed
+    created_at: '2026-03-02'
+    affected_services: biztech_telemetry_collector
+
+- input:
+    summary: |-
+      **Problem**: Assetly (the device-inventory system) was unavailable, causing service disruption.
+
+      **Impact**: Downstream services relying on device inventory, such as device enrollments and config evaluations, could not function. Around 1,200 config-lookup failures occurred during the outage.
+
+      **Causes**: Unknown.
+
+      **Steps to resolve**: We contacted Assetly support; the service began responding again and the login portal became available.
+    resolution_statement: Assetly is back online. This may have been unscheduled downtime or maintenance.
+  expected: Assetly, the device-inventory system, became unavailable, disrupting downstream services such as device enrollments and config evaluations and causing around 1,200 config-lookup failures. The root cause was not determined; the vendor service recovered on its own and may have been unscheduled downtime or maintenance.
+  metadata:
+    reference_id: INC-8095
+    status: closed
+    created_at: '2026-02-18'
+    affected_services: biztech_assetly
+
+- input:
+    summary: |-
+      **Problem**: Some services across clusters intermittently had egress traffic blocked by the firewalls.
+
+      **Impact**: The plugin that integrates the firewall with the Kubernetes clusters to ingest label-to-IP mappings in real time and propagate them to all managed firewalls had stopped working.
+
+      **Causes**: The plugin was unable to write data to disk following a resizing activity.
+
+      **Steps to resolve**: Restarted the Kubernetes service and force-pushed the IP-to-label mapping from the firewall manager after isolating the issue.
+    resolution_statement: Restarted the integration service and re-pushed the label-to-IP mapping from the firewall manager, restoring egress.
+  expected: The plugin that syncs Kubernetes label-to-IP mappings to the managed firewalls stopped working because it could not write data to disk after a resizing activity, so the firewalls intermittently blocked egress traffic for services across clusters. It was mitigated by restarting the integration service and re-pushing the IP-to-label mapping from the firewall manager.
+  metadata:
+    reference_id: INC-8060
+    status: closed
+    created_at: '2026-02-02'
+    affected_services: biztech_firewall_integration
+
+- input:
+    summary: |-
+      **Problem**: Salesforce-linked channels in the Quillpad chat tool were renamed with an unexpected prefix and users could not see channel discussions; channel docs appeared only in the Files section. Reported by workspace admin Lena Ortiz (lena.ortiz@example-corp.test).
+
+      **Impact**: Affected channels were hard to use; discussions were hidden and docs were misplaced.
+
+      **Causes**: A change on the vendor side.
+
+      **Steps to resolve**: The vendor support team reverted the change.
+    resolution_statement: The Quillpad support team reverted the change, which resolved the issue.
+  expected: Salesforce-linked Quillpad channels were renamed with an unexpected prefix, channel discussions were not visible, and channel docs appeared only in the Files section. The root cause was a change on the vendor's side, which the Quillpad support team reverted to resolve the issue.
+  metadata:
+    reference_id: INC-8030
+    status: closed
+    created_at: '2026-01-30'
+    affected_services: biztech_quillpad
+
+- input:
+    summary: |-
+      **Problem**: A BGP peer went down on a network device, causing unstable VPN connections.
+
+      **Impact**: Cloud VPN tunnel status is unstable, risking connectivity loss and routing issues. No user complaints reported.
+
+      **Causes**: The network provider confirmed an outage on their network.
+
+      **Steps to resolve**: We opened a support ticket with the provider and monitored recovery.
+    resolution_statement: An upstream incident on the provider network caused a partial outage and degradation to some internet services.
+  expected: A BGP peer went down on a network device, destabilizing the cloud VPN tunnels with potential connectivity and routing loss. The root cause was an upstream network outage at the provider that partially degraded internet services. No user complaints were reported.
+  metadata:
+    reference_id: INC-8010
+    status: closed
+    created_at: '2026-01-27'
+    affected_services: biztech_office_vpn
+
+- input:
+    summary: |-
+      **Problem**: Employees in one region lost access to the global VPN and the office network due to a network outage.
+
+      **Impact**: Employees in that region could not connect to the global VPN or office network, blocking normal work. Service has been restored.
+
+      **Causes**: An internet link outage between two regional hubs disrupted the office network that carries the region's VPN traffic. The provider confirmed the outage and rerouted the circuit.
+
+      **Steps to resolve**: We escalated to the provider, who restored the circuit by fixing faulty equipment, and began work on backup VPN gateways.
+    resolution_statement: The provider replaced the faulty device, which restored connectivity.
+  expected: An internet link outage between two regional hubs disrupted the office network that carries the region's VPN traffic, so employees there lost access to the global VPN and office network. The root cause was faulty provider equipment; the network provider replaced the faulty device to restore connectivity.
+  metadata:
+    reference_id: INC-7995
+    status: closed
+    created_at: '2026-01-26'
+    affected_services: biztech_office_vpn
+
+- input:
+    summary: |-
+      **Problem**: The production device-management server became unresponsive, triggering multiple alerts.
+
+      **Impact**: Device-management services were unavailable for about an hour — the enrollment page would not load and metrics stopped reporting.
+
+      **Causes**: Unknown. The server became unresponsive.
+
+      **Steps to resolve**: We rebooted the server; it is now reachable, metrics are flowing, and re-enrollment tests succeeded.
+    resolution_statement: The instance was rebooted, which resolved the issue.
+  expected: The production device-management server became unresponsive for about an hour, making device-management services unavailable — the enrollment page would not load and metrics stopped reporting. The underlying cause was not determined; rebooting the instance restored the server, metrics, and enrollment.
+  metadata:
+    reference_id: INC-7980
+    status: closed
+    created_at: '2026-01-12'
+    affected_services: biztech_device_management
+
+- input:
+    summary: |-
+      **Problem**: Taskly was not loading for new web sessions, showing a 'no healthy upstream' error.
+
+      **Impact**: New Taskly web sessions could not start during the outage. Existing sessions, mobile, and API access were unaffected.
+
+      **Causes**: Unknown.
+
+      **Steps to resolve**: Taskly engineers reverted the change that prevented new web sessions; service was restored.
+    resolution_statement: Taskly engineers reverted the change that was causing the issue.
+  expected: New Taskly web sessions failed to load with a 'no healthy upstream' error, while existing sessions, mobile, and API access were unaffected. The root cause was a change on Taskly's side, which Taskly engineers reverted to restore service.
+  metadata:
+    reference_id: INC-7955
+    status: closed
+    created_at: '2026-01-05'
+    affected_services: biztech_taskly
+
+- input:
+    summary: |-
+      **Problem**: The badge-access controller at the BRT2 site remains unreachable despite power and internet being restored.
+
+      **Impact**: The security operations team cannot access the BRT2 partition and cameras. Employee badge access to BRT2 is not impacted.
+
+      **Causes**: The badge-access server at BRT2 is unresponsive and did not come back online after multiple troubleshooting attempts.
+
+      **Steps to resolve**: Power and internet were restored; the team troubleshot onsite and attempted reboots. We are sourcing a replacement server.
+    resolution_statement: Follow-up actions were created to coordinate with building management and the site engineer on the underlying power outage.
+  expected: The badge-access controller at the BRT2 site stayed unreachable even after power and internet were restored, leaving the security operations team without access to the BRT2 partition and cameras (employee badge access was unaffected). The server was unresponsive and did not recover after onsite troubleshooting and reboot attempts; a replacement was being sourced and follow-up actions were created to coordinate with building management on the underlying power outage.
+  metadata:
+    reference_id: INC-7930
+    status: closed
+    created_at: '2025-12-27'
+    affected_services: biztech_office_security
+
+# --- Sparse incidents: short summary + short resolution. The root cause is
+# only as specific as the source allows; do not invent detail. ---
+- input:
+    summary: Meeting-room monitor reports 100% of conference rooms unavailable
+    resolution_statement: Rooms were impacted by planned maintenance at the site
+  expected: A monitoring tool reported 100% of conference rooms as unavailable. The root cause was planned maintenance activity at the site rather than a fault.
+  metadata:
+    reference_id: INC-7905
+    status: closed
+    created_at: '2026-01-25'
+    affected_services: biztech_meeting_rooms
+
+- input:
+    summary: Users in one region cannot connect to stage 2 of the regional VPN.
+    resolution_statement: Mitigated after the network team updated the NTP server settings on the regional firewall
+  expected: Users in one region were unable to connect to stage 2 of the regional VPN. The issue was traced to NTP server settings on the regional firewall and mitigated after the network team updated them.
+  metadata:
+    reference_id: INC-7860
+    status: closed
+    created_at: '2025-08-22'
+    affected_services: biztech_office_vpn
+
+- input:
+    summary: Upstream cloud provider appears to be having an outage. Enabling failover and maintenance mode.
+    resolution_statement: Cloud provider recovered; we re-enabled the affected service and returned to normal.
+  expected: An upstream cloud provider outage affected multiple services, prompting failover and maintenance mode to be enabled. The root cause was on the cloud provider's side; once it recovered, the affected service was re-enabled and operations returned to normal.
+  metadata:
+    reference_id: INC-7815
+    status: closed
+    created_at: '2025-06-12'
+    affected_services: biztech_cloud_egress
+
+- input:
+    summary: Reports of users unable to join video meetings or add meeting links to calendar invites.
+    resolution_statement: Vendor engineering identified and resolved the problem. DNS issues.
+  expected: Users were unable to join video meetings or add meeting links to calendar invites during a widespread vendor outage. Vendor engineering identified the cause as DNS issues on their side and resolved it.
+  metadata:
+    reference_id: INC-7770
+    status: closed
+    created_at: '2025-04-16'
+    affected_services: biztech_video_conf
+
+- input:
+    summary: Lag increase in the event-stream producer. Flagged by on-call engineer Sam Okafor (sam.okafor@example-corp.test).
+    resolution_statement: Bot scraping stopped and the issue mitigated automatically.
+  expected: The event-stream producer experienced increased lag. The root cause was attributed to bot scraping, and the issue mitigated automatically once that traffic stopped.
+  metadata:
+    reference_id: INC-7725
+    status: closed
+    created_at: '2025-06-10'
+    affected_services: biztech_event_stream

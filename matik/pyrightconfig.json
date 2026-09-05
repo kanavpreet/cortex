@@ -1,0 +1,11 @@
+{
+  "include": [
+    "."
+  ],
+  "exclude": [
+    "**/__pycache__",
+    "**/alembic/versions"
+  ],
+  "pythonVersion": "3.13",
+  "pythonPlatform": "All"
+}

@@ -1,0 +1,17 @@
+---
+# Common configuration for MCP Server
+# Documentation: https://developers.a.musta.ch/docs/default/component/kube-gen/kube-gen/configs/files
+
+
+common:
+  environment: {{ .Env.Name }} #Deployment environment
+  port: {{ .Env.Params.port }} #Service port
+  log_level: INFO
+
+api:
+  api_endpoint: {{ .Env.Params.api.api_endpoint }}
+  service_secret: '{{ .App.Secrets.api.service_secret | default "" }}'  # Phase 1c: shared secret for signing requests to matik-api
+
+mcp:
+  spec_refresh_interval_minutes: {{ .Env.Params.mcp.spec_refresh_interval_minutes }} # Interval in minutes to refresh the MCP specification
+  http_session_idle_timeout_seconds: {{ .Env.Params.mcp.http_session_idle_timeout_seconds }} # Idle timeout in seconds before reaping inactive Streamable HTTP sessions

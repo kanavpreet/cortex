@@ -1,0 +1,312 @@
+# ⚠️  FICTIONAL DATA — NOT REAL EVENTS.
+# Golden rows for the incidentio-description summary eval. Synthetic, inspired by real Biztech
+# data; every name/id/date is invented. Some `input` rows embed fake PII so the
+# pii_safe scorer has something to catch — the `expected` gold summaries never do.
+# `input` fields mirror exactly what the enricher sends to the LLM.
+
+- input:
+    name: CI build queue stuck and growing
+    summary: |-
+      Problem: Continuous integration jobs stopped completing and piled up in a rapidly growing queue.
+
+      Impact: Builds across the engineering org were delayed, with the queue peaking above 600 items. Jobs for the orchard-service repository were worst hit, with some blocked for nearly 3 hours, delaying software delivery for several teams. Immediate impact is now resolved.
+
+      Causes: A CI config change in the orchard-service repository created an infinite loop that spawned excessive jobs and automated release PRs, exhausting build resources. It was made worse by managed CI jobs building every discovered branch on each event and by stale branches.
+
+      Steps to resolve: We killed the runaway jobs, canceled the queued orchard-service jobs via API, and reverted the offending CI config change. Triggers were briefly disabled and re-enabled.
+  expected: CI builds stalled when the job queue grew past 600 items and stopped completing, with orchard-service repository builds blocked for nearly 3 hours. The failure came from a CI configuration change in orchard-service that introduced an infinite loop, flooding the system with excessive jobs and exhausting build resources. This delayed software delivery for multiple engineering teams.
+  metadata:
+    reference_id: INC-8001
+    status: closed
+    created_at: '2026-05-30'
+    affected_services: biztech_ci_orchard
+
+- input:
+    name: Chatwave messaging outage
+    summary: |-
+      Problem: Chatwave, the team messaging vendor, had a global outage affecting messaging, workflows, apps, and integrations.
+
+      Impact: Chatwave users worldwide, including many employees in the EMEA region, could not access messaging, workflows, apps, integrations, or APIs starting in the afternoon. Most features recovered overnight; the longest-lingering issues were permissions and the docs feature. All services are now restored.
+
+      Causes: A cascading scheduling failure following an infrastructure change on Chatwave's side disrupted all core services, per their status page. Recovery required configuration adjustments, infrastructure fixes, and cache redeploys.
+
+      Steps to resolve: Chatwave applied configuration and infrastructure fixes and cache updates to fully restore service. We posted status updates to employees and paged the collaboration on-call team.
+  expected: Chatwave, the team messaging vendor, experienced a global outage affecting all core services including messaging, workflows, apps, integrations, and APIs. The disruption was caused by a cascading scheduling failure following an infrastructure change on Chatwave's side. Employees worldwide, especially in the EMEA region, were unable to use Chatwave until services were fully restored the next morning.
+  metadata:
+    reference_id: INC-7990
+    status: closed
+    created_at: '2026-05-27'
+    affected_services: biztech_chatwave
+
+- input:
+    name: Cannot provision new accounts in CloudOffice
+    summary: |-
+      Problem: New user accounts cannot be created in CloudOffice because the premium browser license cap is now strictly enforced.
+
+      Impact: About 90 planned onboardings are blocked, including new employees and support partners. No new CloudOffice accounts can be created since early morning. Existing users are unaffected.
+
+      Causes: The vendor began strictly enforcing the premium browser license cap at the contractual limit of 24,000, where previously it allowed overflow assignments and billed for active users. This blocked new provisioning.
+
+      Steps to resolve: We escalated to the vendor as a P0 and are coordinating to raise or restore the license allocation. Impacted teams were notified.
+  expected: New CloudOffice user accounts could not be created after the vendor began strictly enforcing the premium browser license cap at its contractual limit of 24,000. Existing users were unaffected, but the block halted roughly 90 planned onboardings for employees and support partners. Provisioning was blocked from early morning onward.
+  metadata:
+    reference_id: INC-7965
+    status: closed
+    created_at: '2026-05-26'
+    affected_services: biztech_cloudoffice
+
+- input:
+    name: Dev portal 401s during gateway rollout
+    summary: |-
+      Problem: From the start of a gateway weighted-DNS ramp, the internal developer portal returned 401 'missing credentials' errors on all authenticated API calls when reached through the access proxy. The static UI shell still loaded, but every authenticated portal operation failed for browser users.
+
+      Impact: Around 120 developers could not use the portal during a 2-hour window, losing access to docs and runbooks. The 401 rate climbed with each DNS weight increase. Traffic that bypassed the access proxy was unaffected.
+
+      Causes: A recent change added a filter on the gateway route that stripped the client Authorization header at the load balancer. That was correct for a different host but broke the developer portal, which relies on that header for portal auth.
+
+      Steps to resolve: Resolved via an emergency rollback of the weighted-DNS change, which cleared the 401s within minutes.
+  expected: The internal developer portal returned 401 authentication errors on all authenticated API calls during a gateway weighted-DNS rollout, while the static UI shell still loaded. The cause was a configuration change that added a filter stripping the client Authorization header at the load balancer, which broke portal authentication. Roughly 120 developers lost access to documentation and runbooks over a 2-hour window.
+  metadata:
+    reference_id: INC-7920
+    status: closed
+    created_at: '2026-05-17'
+    affected_services: biztech_dev_portal
+
+- input:
+    name: Tycho office network outage
+    summary: |-
+      Problem: The Tycho office experienced a complete network outage, with all office and guest WiFi and VPN connectivity unavailable from mid-morning local time.
+
+      Impact: All staff in the Tycho office lost office WiFi and VPN connectivity, blocking normal business operations. Guest WiFi was also down, and the security operations team could not reach the badge-access partition or CCTV systems.
+
+      Causes: An unexpected firewall deny rule (rule 88) pushed from the central firewall manager blocked all network traffic at the Tycho office. Rollback attempts failed until the firewall was switched to local policy management and the deny rule was deleted.
+
+      Steps to resolve: We converted the firewall to local policy management and deleted the deny rule, restoring connectivity, then monitored for stability.
+  expected: The Tycho office experienced a complete network outage starting mid-morning, taking down office WiFi, guest WiFi, and VPN connectivity. The failure was triggered by an unexpected firewall deny rule (rule 88) pushed from the central firewall manager that blocked all network traffic. Staff lost connectivity for normal business operations, and the security operations team could not access the badge-access partition or CCTV systems.
+  metadata:
+    reference_id: INC-7880
+    status: closed
+    created_at: '2026-05-12'
+    affected_services: biztech_office_network
+
+- input:
+    name: Partial Lumen AI outage
+    summary: |-
+      Problem: Lumen AI, a third-party model vendor, is generating elevated errors across multiple models in production.
+
+      Impact: Customers using Lumen AI are seeing elevated errors across multiple models in production. The number of affected users is not yet quantified.
+
+      Causes: Unknown.
+
+      Steps to resolve: The Lumen AI vendor pushed a fix and we are monitoring error rates to confirm recovery for our services.
+  expected: Lumen AI, a third-party model vendor, generated elevated errors across multiple models in production. The root cause was not identified on our side, as the issue originated with the vendor. Customers using Lumen AI experienced degraded service across multiple models until the vendor deployed a fix.
+  metadata:
+    reference_id: INC-7840
+    status: closed
+    created_at: '2026-05-06'
+    affected_services: biztech_lumen_ai
+
+- input:
+    name: Dev access proxy returning fault errors
+    summary: |-
+      Problem: Multiple development applications behind the dev access proxy became unreachable and returned 'fault filter abort' errors, even though the underlying apps were healthy.
+
+      Impact: Roughly 10-15 active users across APAC and North America could not use at least six dev services, including notebook-dev, tickets-dev, and wiki-dev, blocking time-sensitive work. Production was not affected.
+
+      Causes: A recent dev access-proxy helm chart update, meant to fix naming and IAM policy issues, exhausted the available service IPs in the dev environment, causing outages across multiple dev services.
+
+      Steps to resolve: A temporary DNS patch restored access overnight; a longer-term cleanup of unused services is pending.
+  expected: Multiple development applications behind the dev access proxy became inaccessible, returning 'fault filter abort' errors even though the underlying apps were healthy. The cause was a dev access-proxy helm chart update that exhausted available service IPs in the dev environment. Roughly 10 to 15 users across APAC and North America were blocked from at least six dev services, delaying time-sensitive work; production was unaffected.
+  metadata:
+    reference_id: INC-7835
+    status: closed
+    created_at: '2026-05-06'
+    affected_services: biztech_dev_access_proxy
+
+- input:
+    name: Asset-discovery Lambda failing on startup
+    summary: |-
+      Problem: The 'asset-discovery-prod-proc' Lambda function was failing on startup due to a configuration error, causing permission failures during secrets lookup.
+
+      Impact: The function repeatedly failed in production, disrupting automatic asset discovery and monitoring and creating intermittent monitoring gaps until resolved.
+
+      Causes: A recent code change introduced a JSON syntax error (missing commas) in excluded.json. The invalid JSON made the function fail on startup, leaving orphaned secret tokens and permission-denied errors during auth.
+
+      Steps to resolve: We fixed the JSON syntax in excluded.json, after which the function executed normally and monitoring resumed.
+  expected: The asset-discovery-prod-proc Lambda function repeatedly failed in production, disrupting automatic asset discovery and monitoring. The failure was caused by a JSON syntax error (missing commas) in excluded.json, which made the function fail on startup with permission-denied errors during secrets lookup. This created intermittent monitoring gaps until the file was corrected.
+  metadata:
+    reference_id: INC-7790
+    status: closed
+    created_at: '2026-05-03'
+    affected_services: biztech_observability_discovery
+
+- input:
+    name: External partners locked out of vault manager
+    summary: |-
+      Problem: Some external partners lost access to the VaultManager password tool and cannot sign in. Accounts are suspended, pending activation, or not receiving verification emails. Reported by partner contact Priya Raman (priya.raman@example-partner.com, +1-555-0142).
+
+      Impact: External partners in the 'Partner Training Lead' and 'Partner Training Manager' roles cannot access VaultManager.
+
+      Causes: Recent title-configuration and group-membership changes revoked VaultManager permissions for these partner roles and removed them from the relevant access group.
+
+      Steps to resolve: The affected titles were re-enabled in the access management system, and users regained access after a manual sync.
+  expected: Some external partners lost access to the VaultManager password tool and could not sign in, with accounts suspended or pending activation. The cause was recent title-configuration and group-membership changes that revoked VaultManager permissions for certain partner roles and removed them from the relevant access group. Affected external partners in specific training roles were unable to access VaultManager.
+  metadata:
+    reference_id: INC-7720
+    status: closed
+    created_at: '2026-04-15'
+    affected_services: biztech_vaultmanager
+
+- input:
+    name: Ops metrics pipeline failing to reach ticketing
+    summary: |-
+      Problem: All ops-metrics scheduled jobs failed with 401 Unauthorized errors when connecting to the ticketing system, starting after the last successful run on Friday.
+
+      Impact: The jobs failed to run from Friday until the auth issue was fixed, preventing ops-metrics data in object storage from updating for two days. One day's file has been restored; the other is being backfilled.
+
+      Causes: The jobs used basic authentication with a service account to connect to the ticketing system. After a ticketing maintenance window, that auth method stopped working, causing 401 errors.
+
+      Steps to resolve: We updated the jobs' authentication method and deployed it; jobs now run, and a backfill is recovering the missing day.
+  expected: All ops-metrics scheduled jobs failed with 401 Unauthorized errors when connecting to the ticketing system. The cause was a ticketing maintenance window that broke the basic authentication method the jobs used with a service account. As a result, ops-metrics data in object storage was not updated for two days until the authentication was fixed and a backfill recovered the missing data.
+  metadata:
+    reference_id: INC-7680
+    status: closed
+    created_at: '2026-04-13'
+    affected_services: biztech_ops_metrics
+
+- input:
+    name: Knowledge team cannot open content entries
+    summary: |-
+      Problem: Users received a 'you are not allowed' error when opening content entries in the ContentHub CMS, regardless of VPN status or browser. First reported by the APAC team in the morning.
+
+      Impact: Over 40 users on the Knowledge Management and Support Response teams could not access any content entries; all content types were affected for these internal teams. External help-center access was unaffected.
+
+      Causes: A vendor feature flag ('apply_draft') was enabled for the org as part of an early-access program, which caused access requests to return errors.
+
+      Steps to resolve: The vendor identified the feature flag as the cause and disabled it, restoring access.
+  expected: Internal users received 'you are not allowed' errors when accessing ContentHub CMS entries, regardless of VPN or browser. The cause was a vendor feature flag called 'apply_draft', enabled for the org as part of an early-access program, which made access requests return errors. Over 40 users on the Knowledge Management and Support Response teams lost access to all content types, while external help-center access was unaffected.
+  metadata:
+    reference_id: INC-7610
+    status: closed
+    created_at: '2026-04-08'
+    affected_services: biztech_contenthub
+
+- input:
+    name: OTel collector cannot pull image
+    summary: |-
+      Problem: The OpenTelemetry collector cannot pull its container image from the registry, preventing the log shipper from sending events to the search cluster.
+
+      Impact: No log-shipper monitoring.
+
+      Causes: The collector is unable to retrieve its container image from the registry.
+
+      Steps to resolve: Systems engineering was paged and the incident escalated as high priority.
+  expected: The OpenTelemetry collector was unable to pull its container image from the registry, which prevented the log shipper from sending events to the search cluster. This resulted in a loss of log-shipper monitoring. The issue was escalated to systems engineering for investigation.
+  metadata:
+    reference_id: INC-7560
+    status: closed
+    created_at: '2026-04-01'
+    affected_services: biztech_otel_collector
+
+- input:
+    name: Build license expired blocking config updates
+    summary: |-
+      Problem: About 180 configuration-management nodes were failing during the package-update step because of an expired artifact-repository license.
+
+      Impact: At peak, roughly 180 production nodes (about 65% of managed nodes) could not complete configuration updates, blocking necessary software updates. After remediation only the expected baseline remained failing.
+
+      Causes: The artifact-repository enterprise license expired, blocking access to the package repositories needed for configuration updates.
+
+      Steps to resolve: We renewed the license, restoring access to the repositories, and nodes resumed converging.
+  expected: Around 180 production configuration-management nodes (about 65% of managed nodes) failed during the package-update step and could not complete configuration updates. The cause was an expired artifact-repository enterprise license, which blocked access to the package repositories the nodes needed. This prevented necessary software updates across the affected nodes.
+  metadata:
+    reference_id: INC-7500
+    status: closed
+    created_at: '2026-03-26'
+    affected_services: biztech_config_management
+
+- input:
+    name: Beacon VPN unreachable across regions
+    summary: |-
+      Problem: All users in the APAC region were unable to connect to the Beacon VPN, with similar connectivity issues affecting several other offices.
+
+      Impact: APAC users lost access to the Beacon VPN, a complete outage for internal resources requiring VPN. Other offices also saw WiFi and VPN issues until service was restored.
+
+      Causes: A firewall change made earlier in the day during a separate incident response disrupted VPN and WiFi connectivity in multiple offices by denying DNS traffic. Rolling back the change restored access.
+
+      Steps to resolve: Network engineering identified the firewall change, rolled it back, and restored connectivity across offices.
+  expected: Users in the APAC region were unable to connect to the Beacon VPN, with related WiFi and VPN connectivity outages affecting several other offices. The cause was a firewall change made earlier in the day during a separate incident response, which denied DNS traffic. This resulted in a complete loss of access to internal resources requiring VPN connectivity across the affected regions.
+  metadata:
+    reference_id: INC-7450
+    status: closed
+    created_at: '2026-03-25'
+    affected_services: biztech_office_vpn
+
+- input:
+    name: Action buttons missing in Helios CRM
+    summary: |-
+      Problem: CRM agents cannot see the action-button component in the Helios CRM UI. It was visible earlier today. First reported by agent Marcus Feldt (marcus.feldt@example-corp.test).
+
+      Impact: All agents on the Helios production instance cannot see the action-button component. Some buttons reappeared after a partial filter removal, but not all.
+
+      Causes: Legacy data pipelines that were deprecated earlier in the year were still referenced by CRM filters controlling button visibility; removing those filters triggered the issue.
+
+      Steps to resolve: A rollback was started to revert the manual changes and restore the previous UI state.
+  expected: CRM agents on the Helios production instance could no longer see the action-button component in the UI. The cause was legacy data pipelines, deprecated earlier in the year, that were still referenced by CRM filters controlling button visibility; removing those filters triggered the issue. All agents using the Helios production instance were affected until the change was rolled back.
+  metadata:
+    reference_id: INC-7400
+    status: closed
+    created_at: '2026-03-24'
+    affected_services: biztech_helios_crm
+
+# --- Sparse incidents: thin name + summary, little to summarize. The gold
+# states only what is given and does not invent detail. ---
+- input:
+    name: DRT1 network outage
+    summary: Investigating network outage in DRT1 office
+  expected: A network outage occurred at the DRT1 office and was under investigation. No details on the affected systems, root cause, or business impact were provided in the incident summary.
+  metadata:
+    reference_id: INC-7350
+    status: closed
+    created_at: '2026-04-27'
+    affected_services: biztech_office_network
+
+- input:
+    name: Mailguard is unavailable
+    summary: Mailguard is giving 502 errors and is inaccessible. Reported by Dana Whitlock (dana.whitlock@example-corp.test, ext. 4471).
+  expected: Mailguard was unavailable, returning 502 errors and was inaccessible. No further details on the cause, affected systems, or business impact were provided in the incident summary.
+  metadata:
+    reference_id: INC-7300
+    status: closed
+    created_at: '2026-03-19'
+    affected_services: biztech_mailguard
+
+- input:
+    name: Taskly outage
+    summary: 'Taskly is down. Status page: https://status.example-taskly.test/incidents/abc123'
+  expected: Taskly was down, as noted on its status page. No details on the cause, affected users, or business impact were provided in the incident summary.
+  metadata:
+    reference_id: INC-7250
+    status: closed
+    created_at: '2026-01-22'
+    affected_services: biztech_taskly
+
+- input:
+    name: Survey tool is down
+    summary: Survey tool is down
+  expected: The survey tool was down. No details on the nature of the outage, affected systems, root cause, or business impact were provided in the incident summary.
+  metadata:
+    reference_id: INC-7200
+    status: closed
+    created_at: '2025-08-28'
+    affected_services: biztech_survey_tool
+
+- input:
+    name: 500 errors from portal.example-internal.test
+    summary: portal.example-internal.test down
+  expected: The internal portal at portal.example-internal.test was down, returning 500 errors. No details on the root cause, affected systems, or business impact were provided in the incident summary.
+  metadata:
+    reference_id: INC-7150
+    status: closed
+    created_at: '2025-06-17'
+    affected_services: biztech_internal_portal

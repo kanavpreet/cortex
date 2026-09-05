@@ -1,0 +1,33 @@
+---
+# Common configuration for Matik Enigmatologist
+# Service with a state machine that correlates events
+
+# Common configuration shared across services
+common:
+  environment: {{ .Env.Name }}  # Deployment environment
+  port: {{ .Env.Params.port }}  # Service port
+  log_level: INFO  # Logging level
+
+# Enigmatologist worker configuration
+enigmatologist:
+  sqs_queue_url: {{ .Env.Params.enigmatologist.sqs_queue_url }}  # SQS queue URL for receiving correlation requests
+  scribe_queue_url: {{ .Env.Params.scribe.high_priority.sqs_queue_url }}  # Scribe SQS queue URL for writing correlation results
+  sqs_queue_region: {{ .Env.Params.enigmatologist.sqs_queue_region }}  # AWS region of the SQS queue
+  max_concurrent_correlations: {{ .Env.Params.enigmatologist.max_concurrent_correlations }}  # Max number of correlation jobs running in parallel
+  sqs_max_messages: {{ .Env.Params.enigmatologist.sqs_max_messages }}  # Max messages to fetch per SQS poll (1-10)
+  sqs_wait_time_seconds: {{ .Env.Params.enigmatologist.sqs_wait_time_seconds }}  # Long-poll wait time in seconds
+  sqs_visibility_timeout: {{ .Env.Params.enigmatologist.sqs_visibility_timeout }}  # Seconds a message is hidden from other consumers while being processed
+  sqs_poll_error_delay: {{ .Env.Params.enigmatologist.sqs_poll_error_delay }}  # Seconds to wait before retrying after a poll error
+  matik_api_read_timeout: {{ .Env.Params.enigmatologist.matik_api_read_timeout }}  # Timeout in seconds for read requests to the Matik API
+  matik_api_write_timeout: {{ .Env.Params.enigmatologist.matik_api_write_timeout }}  # Timeout in seconds for write requests to the Matik API
+  lookback_hours_github: {{ .Env.Params.enigmatologist.lookback_hours_github }}  # Hours before incident creation to look back for GitHub PRs
+  lookback_hours_jira: {{ .Env.Params.enigmatologist.lookback_hours_jira }}  # Hours before incident creation to look back for Jira TCMRs
+  llm_provider: {{ .Env.Params.enigmatologist.llm_provider }}  # LLM provider to use for correlation (bedrock or facade)
+  min_llm_score: {{ .Env.Params.enigmatologist.min_llm_score }}  # Minimum LLM confidence score to include a correlation
+  speculative_patterns: {{ .Env.Params.enigmatologist.speculative_patterns }}  # Regex patterns matched against LLM reasoning to filter out speculative matches
+  correlation_system_prompt: {{ .Env.Params.enigmatologist.correlation_system_prompt | quote }}  # System prompt for the LLM correlation engine
+  speculative_max_score: {{ .Env.Params.enigmatologist.speculative_max_score }}  # Score at/above which a match is kept despite speculative wording; below it, speculative reasoning is filtered
+# Matik API endpoint for persisting correlation results
+api:
+  api_endpoint: {{ .Env.Params.api.api_endpoint }}
+  service_secret: '{{ .App.Secrets.api.service_secret | default "" }}'  # Phase 1c: shared secret for signing requests to matik-api

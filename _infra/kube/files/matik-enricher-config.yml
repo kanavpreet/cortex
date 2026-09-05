@@ -1,0 +1,56 @@
+---
+# Common configuration for Matik Enricher
+# Async SQS consumer that enriches entities with LLM summaries
+
+common:
+  environment: {{ .Env.Name }}
+  log_level: INFO
+  port: {{ .Env.Params.enricher.port }}
+
+enricher:
+  enricher_queue_url: {{ .Env.Params.enricher.enricher_queue_url }}
+  enricher_dlq_url: {{ .Env.Params.enricher.enricher_dlq_url }}
+  scribe_llm_queue_url: {{ .Env.Params.scribe.medium_priority.sqs_queue_url }}
+  sqs_queue_region: {{ .Env.Params.enricher.sqs_queue_region }}
+  sqs_max_messages: {{ .Env.Params.enricher.sqs_max_messages }}
+  sqs_wait_time_seconds: {{ .Env.Params.enricher.sqs_wait_time_seconds }}
+  sqs_poll_error_delay: {{ .Env.Params.enricher.sqs_poll_error_delay }}
+  max_concurrent_llm_calls: {{ .Env.Params.enricher.max_concurrent_llm_calls }}
+  visibility_timeout_seconds: {{ .Env.Params.enricher.visibility_timeout_seconds }}
+  hash_cache_ttl_seconds: {{ .Env.Params.enricher.hash_cache_ttl_seconds }}
+  hash_cache_max_size: {{ .Env.Params.enricher.hash_cache_max_size }}
+  general_prompt: {{ .Env.Params.enricher.general_prompt | quote }}
+  source_mappings:
+    incidentio:
+      - input_keys: ["summary", "resolution_statement"]
+        output_field: root_cause_summary
+        hash_field: root_cause_summary_hash
+        prompt: {{ .Env.Params.enricher.source_mappings.incidentio_root_cause_prompt | quote }}
+      - input_keys: ["name", "summary"]
+        output_field: description_summary
+        hash_field: description_hash
+        prompt: {{ .Env.Params.enricher.source_mappings.incidentio_description_prompt | quote }}
+    ghe_pr:
+      - input_keys: ["original_description"]
+        output_field: pull_request_summary
+        hash_field: description_hash
+        prompt: {{ .Env.Params.enricher.source_mappings.ghe_pr_prompt | quote }}
+    jira:
+      - input_keys: ["issue_description"]
+        output_field: issue_summary
+        hash_field: summary_hash
+        prompt: {{ .Env.Params.enricher.source_mappings.jira_description_prompt | quote }}
+      - input_keys: ["aggregated_comments"]
+        output_field: issue_comments_summary
+        hash_field: comments_hash
+        prompt: {{ .Env.Params.enricher.source_mappings.jira_comments_prompt | quote }}
+    incident_channel_summary:
+      - input_keys: ["incident_channel_summary"]
+        output_field: incident_channel_summary
+        hash_field: incident_channel_summary_hash
+        prompt: {{ .Env.Params.enricher.source_mappings.incident_channel_summary_prompt | quote }}
+
+# Matik API endpoint for DB-backed hash comparison (skip re-enriching unchanged content)
+api:
+  api_endpoint: {{ .Env.Params.api.api_endpoint }}
+  service_secret: '{{ .App.Secrets.api.service_secret | default "" }}'  # Phase 1c: shared secret for signing requests to matik-api

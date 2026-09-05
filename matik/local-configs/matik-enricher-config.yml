@@ -1,0 +1,90 @@
+common:
+  environment: ${ENVIRONMENT}
+  log_level: ${LOG_LEVEL}
+  port: ${ENRICHER_PORT}
+
+enricher:
+  enricher_queue_url: ${ENRICHER_QUEUE_URL}
+  enricher_dlq_url: ${ENRICHER_DLQ_URL}
+  scribe_llm_queue_url: ${SCRIBE_MEDIUM_PRIORITY_QUEUE_URL}
+  sqs_queue_region: ${AWS_REGION}
+  sqs_max_messages: 10
+  sqs_wait_time_seconds: 20
+  sqs_poll_error_delay: 5
+  max_concurrent_llm_calls: 20
+  visibility_timeout_seconds: 300
+  hash_cache_ttl_seconds: 300
+  hash_cache_max_size: 10000
+  general_prompt: |
+    Your task is to produce a single summary of the provided content, following these requirements:
+    1. PII Scrubbing: Remove or redact any personally identifiable information (PII)
+       such as names, email addresses, phone numbers, and other sensitive data; refer to people by role instead.
+    2. Summary Generation: {source_instructions}
+
+    Output ONLY the final summary as plain text — no labels, headings, section titles, preamble,
+    or intermediate steps. Apply the PII scrubbing within the summary itself; do not output the
+    scrubbed input separately.
+
+    Base the summary only on what the content explicitly states — do not infer, assume, or
+    invent details, and do not assert the absence of things (e.g., do not add "no blockers
+    were identified" or describe next steps that are not stated). Match the length to the
+    available content; a single sentence is appropriate for sparse content. Do not pad.
+
+  source_mappings:
+    incidentio:
+      - input_keys: ["summary", "resolution_statement"]
+        output_field: root_cause_summary
+        hash_field: root_cause_summary_hash
+        prompt: |
+          You are an expert in extracting root causes from incident descriptions.
+          Analyze the incident summary and resolution statement and provide a concise root cause analysis.
+          Focus on the technical cause, affected systems, and contributing factors.
+      - input_keys: ["name", "summary"]
+        output_field: description_summary
+        hash_field: description_hash
+        prompt: |
+          You are an incident description summarizer.
+          Given the incident name and summary, produce a concise description of what happened.
+          Focus on the affected systems, the nature of the failure, and the business impact.
+          This description is used for automated root cause correlation.
+    ghe_pr:
+      - input_keys: ["original_description"]
+        output_field: pull_request_summary
+        hash_field: description_hash
+        prompt: |
+          You are a Pull Request Analyzer.
+          The input is formatted as "<title>:::<description>:::comments:<comments
+          separated by ':::'>".
+          Summarize the purpose and impact of the pull request using its title,
+          description, and reviewer conversation comments.
+          Identify the key changes, affected components, the motivation behind them,
+          and any notable concerns or decisions raised in the discussion.
+          The summary should read as a changelog entry.
+    jira:
+      - input_keys: ["issue_description"]
+        output_field: issue_summary
+        hash_field: summary_hash
+        prompt: |
+          You are a Jira Issue Description Analyzer.
+          Capture the core problem or request described in the issue.
+          Include business impact, affected systems, or desired outcome only if the description explicitly states them.
+      - input_keys: ["aggregated_comments"]
+        output_field: issue_comments_summary
+        hash_field: comments_hash
+        prompt: |
+          You are a Jira Issue Comments Analyzer.
+          Summarize the discussion thread from these Jira issue comments.
+          Highlight key decisions made, blockers identified, and the current status.
+    incident_channel_summary:
+      - input_keys: ["incident_channel_summary"]
+        output_field: incident_channel_summary
+        hash_field: incident_channel_summary_hash
+        prompt: |
+          You are an incident channel summarizer.
+          Summarize the incident's raw Slack channel content in a single
+          paragraph, focusing on the problem and its causes, the impact,
+          and the current investigation status.
+
+api:
+  api_endpoint: http://api:${API_PORT}
+  service_secret: ${API_SERVICE_SECRET}

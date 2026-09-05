@@ -1,0 +1,126 @@
+[project]
+name = "matik"
+version = "0.1.0"
+description = "Matik, from the tagalog root word 'awtomatiko' meaning automate, is an AIOps platform that provides a unified data catalog for powering intelligence and automation in the reliability space."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "boto3>=1.35.0",
+    "httpx>=0.27.0",
+    "openai>=1.0.0",
+    "opentelemetry-api>=1.25.0",
+    "opentelemetry-sdk>=1.25.0",
+    "opentelemetry-exporter-otlp-proto-http>=1.25.0",
+    "opentelemetry-instrumentation-openai>=0.33.0",
+    "pydantic>=2.10.4",
+    "githubkit[auth-app]>=0.12.0,<0.15.0",
+    "PyJWT>=2.8.0",
+    "pymysql>=1.1.0",
+    "pyyaml>=6.0",
+    "sqlalchemy>=2.0.0",
+    "sqlmodel>=0.0.22",
+    "starlette>=0.37.0",
+    "structlog>=24.1.0",
+    "braintrust",
+    "genai-studio[langchain]",
+]
+authors = [
+    {name="Alfredo Moreira", email="alfredo.moreira@airbnb.com"},
+    {name="Camille Bustamante", email="camille.bustamante@airbnb.com"},
+    {name="Sumit Chachadi", email="sumit.chachadi@airbnb.com"}
+]
+
+[project.optional-dependencies]
+# Historian-specific dependencies
+historian = []
+
+# Chronicler-specific dependencies
+chronicler = [
+    "confluent-kafka>=2.5.0",
+    "svix>=1.40.0",
+]
+
+# Scribe-specific dependencies
+scribe = []
+
+# API-specific dependencies
+api = [
+    "fastapi[standard]>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+]
+
+# Enricher-specific dependencies
+enricher = []
+
+# Enigmatologist-specific dependencies
+enigmatologist = [
+    "langgraph>=1.0.9",
+]
+
+# MCP server dependencies
+mcp_server = [
+    "mcp>=1.0.0",
+]
+
+# Migrator-specific dependencies
+migrator = [
+    "alembic>=1.15.0",
+    "cryptography>=44.0.0",  # Required for MySQL 8.0+ caching_sha2_password auth
+    "pymysql>=1.1.0",
+    "sqlalchemy>=2.0.0",
+]
+
+# Audit-specific dependencies (continuous production audits, e.g. root-cause-coverage)
+audit = [
+    "gspread>=6.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "alembic>=1.15.0",
+    "anyio>=4.0.0",
+    "boto3-stubs[rds,sts]>=1.35.0",
+    "fastapi[standard]>=0.115.0",
+    "mypy>=1.19.1",
+    "pre-commit-hooks>=6.0.0",
+    "pymysql>=1.1.0",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.14.11",
+    "sqlalchemy>=2.0.0",
+    "types-pyyaml>=6.0.12.20250915",
+    "types-python-dateutil>=2.9.0",
+    "dateutils>=0.6.12",
+    "pyright>=1.1.408",
+    "mcp>=1.0.0",
+    "gspread>=6.0.0",
+]
+
+# Airbnb's internal Artifactory PyPI index — required for internal packages
+# such as genai-studio (GenAI Studio SDK) and braintrust (LLM eval platform).
+[[tool.uv.index]]
+url = "https://artifactory.d.musta.ch/artifactory/api/pypi/pypi/simple"
+default = false
+
+[tool.coverage.run]
+omit = [
+    # Test files - coverage measures source code, not tests
+    "*_test.py",
+    # Alembic auto-generated migration files
+    "*/alembic/versions/*",
+    # Alembic env.py - uses module-level alembic.context which only exists during migrations
+    "*/alembic/env.py",
+    # Entry points - minimal bootstrap code that calls main()
+    "*/__main__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    # Re-include coverage.py's default pragma after overriding exclude_lines
+    "pragma: no cover",
+    # Inline script entry-point guards just call main() — not meaningfully testable
+    "if __name__ == .__main__.:",
+    # Type-checking-only imports never execute at runtime
+    "if TYPE_CHECKING:",
+]

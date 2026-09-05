@@ -1,0 +1,93 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Documentation
+*.md
+README.md
+CLAUDE.md
+docs/
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# MacOS
+.DS_Store
+
+# Build artifacts
+*.o
+*.a
+*.so
+bin/
+dist/
+build/
+
+# Test coverage
+*.out
+coverage.html
+*.test
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Docker
+docker-compose.yaml
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Infrastructure
+_infra/
+terraform/
+*.tfstate
+*.tfstate.backup
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Logs
+*.log
+logs/
+
+# Pre-commit
+.pre-commit-config.yaml
+.*
+!.npmrc
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+
+# Python virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+
+# uv
+.python-version

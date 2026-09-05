@@ -1,0 +1,28 @@
+---
+# Scripts Python format job - checks code formatting with ruff
+dockerfile: "../Dockerfile"
+
+steps:
+  ########### Check Format ##############
+  - type: run
+    label: Check scripts Python formatting
+    command: |
+      set -euxo pipefail
+      cd scripts
+      uv sync --group dev
+      # Use --check to fail if files need formatting (don't modify files)
+      # Use --diff to show what would change
+      uv run ruff format --check --diff .
+
+  - type: run
+    label: Generate failure banner
+    id: scripts-format-banner
+    when: on_failure
+    command: |
+      echo '{ "style": "error", "body": "**Scripts code formatting check failed!**<br/>Some files need to be formatted.<br/>Please run `cd scripts && uv run ruff format .` locally and commit your changes." }'
+
+  - type: banner
+    label: Display failure banner
+    banner_json: "{{scripts-format-banner}}"
+    when: on_failure
+    banner_id: scripts-format-failure

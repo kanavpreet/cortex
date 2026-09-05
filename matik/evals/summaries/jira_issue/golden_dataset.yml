@@ -1,0 +1,193 @@
+# ⚠️  FICTIONAL DATA — NOT REAL EVENTS.
+# Golden rows for the jira-issue summary eval. Synthetic, inspired by real Biztech
+# data; every name/id/date is invented. Some `input` rows embed fake PII so the
+# pii_safe scorer has something to catch — the `expected` gold summaries never do.
+# `input` fields mirror exactly what the enricher sends to the LLM.
+
+- input:
+    issue_description: Allowlist additional OAuth redirect URI hosts for the reporting connector — add
+      localhost, 127.0.0.1, and report-mcp.example-internal.test
+  expected: A change request to allowlist additional OAuth redirect URI hosts for the reporting connector,
+    adding localhost, 127.0.0.1, and report-mcp.example-internal.test.
+  metadata:
+    reference_id: TCMR-40150
+    status: CMR Complete
+    created_at: '2026-06-16'
+    project: TCMR
+
+- input:
+    issue_description: Add new source IP range 10.40.144.0/23 to existing rule devtools_to_reporting
+  expected: A change request to add the new source IP range 10.40.144.0/23 to the existing devtools_to_reporting
+    firewall rule.
+  metadata:
+    reference_id: TCMR-40140
+    status: CMR Complete
+    created_at: '2026-06-22'
+    project: TCMR
+
+- input:
+    issue_description: Update IP allow lists for the HR-system private web application firewall
+  expected: A change to update the IP allow lists for the HR-system private web application firewall (WAF).
+  metadata:
+    reference_id: TCMR-40130
+    status: Implementing
+    created_at: '2026-06-19'
+    project: TCMR
+
+- input:
+    issue_description: Update the logging alert handler to configure alerts in the prod and staging clusters
+  expected: A change to update the logging alert handler so alerts are configured in both the production
+    and staging clusters.
+  metadata:
+    reference_id: TCMR-40120
+    status: Implementing
+    created_at: '2026-06-17'
+    project: TCMR
+
+- input:
+    issue_description: Fix the worker-anniversary email query to pick up active employees
+  expected: A change to fix the worker-anniversary email query so it correctly picks up active employees.
+  metadata:
+    reference_id: TCMR-40115
+    status: Approved
+    created_at: '2026-06-18'
+    project: TCMR
+
+- input:
+    issue_description: Enable the "Use MFA for cloud directory" option in the identity admin console
+  expected: A change to enable the "Use MFA for cloud directory" option in the identity admin console.
+  metadata:
+    reference_id: TCMR-40110
+    status: CMR Complete
+    created_at: '2026-06-24'
+    project: TCMR
+
+- input:
+    issue_description: Deploy the screenshot-rendering apps to production
+  expected: A change to deploy the screenshot-rendering apps to production.
+  metadata:
+    reference_id: TCMR-40105
+    status: Planning
+    created_at: '2026-06-24'
+    project: TCMR
+
+- input:
+    issue_description: Roll out the internal git host behind the access proxy
+  expected: A change to roll out the internal git host behind the access proxy.
+  metadata:
+    reference_id: TCMR-40090
+    status: CMR Complete
+    created_at: '2026-06-15'
+    project: TCMR
+
+- input:
+    issue_description: Allow the egress firewall to reach *.vendor-tools.test via a new URL category
+  expected: A firewall change to allow egress to *.vendor-tools.test via a new URL category.
+  metadata:
+    reference_id: TCMR-40085
+    status: Planning
+    created_at: '2026-06-25'
+    project: TCMR
+
+- input:
+    issue_description: Add report-mcp.example-internal.test as a destination on policy reporting_api_to_connector
+  expected: A firewall/policy change to add report-mcp.example-internal.test as a destination on the reporting_api_to_connector
+    policy.
+  metadata:
+    reference_id: TCMR-40080
+    status: Planning
+    created_at: '2026-06-25'
+    project: TCMR
+
+- input:
+    issue_description: Upgrade the cloud-compute Terraform module from 6.2.2 to 6.9.2 for the hiring platform
+  expected: A change to upgrade the cloud-compute Terraform module from version 6.2.2 to 6.9.2 for the
+    hiring platform.
+  metadata:
+    reference_id: TCMR-40075
+    status: CMR Complete
+    created_at: '2026-06-24'
+    project: TCMR
+
+- input:
+    issue_description: Deploy the SSH-control agent to employee devices
+  expected: A change to deploy the SSH-control agent to employee devices.
+  metadata:
+    reference_id: TCMR-40070
+    status: Cancelled
+    created_at: '2026-06-17'
+    project: TCMR
+
+- input:
+    issue_description: Q2 2026 build-server version upgrade
+  expected: A Q2 2026 change to upgrade the build-server version.
+  metadata:
+    reference_id: TCMR-40065
+    status: CMR Complete
+    created_at: '2026-06-15'
+    project: TCMR
+
+- input:
+    issue_description: Q2 OS patching for the build-server hosts
+  expected: A Q2 OS patching change for the build-server hosts.
+  metadata:
+    reference_id: TCMR-40060
+    status: CMR Complete
+    created_at: '2026-06-15'
+    project: TCMR
+
+- input:
+    issue_description: Apply payroll connector configuration changes
+  expected: A change to apply payroll connector configuration changes.
+  metadata:
+    reference_id: TCMR-40055
+    status: CMR Complete
+    created_at: '2026-06-15'
+    project: TCMR
+
+# --- Sparse rows: thin titles, little to summarize. ---
+- input:
+    issue_description: Fix network flow exporter
+  expected: A change to fix the network flow exporter.
+  metadata:
+    reference_id: TCMR-40045
+    status: Approved
+    created_at: '2026-06-23'
+    project: TCMR
+
+- input:
+    issue_description: IAC prod update
+  expected: A production update to infrastructure-as-code (IAC). No further detail on the specific changes
+    was provided in the issue.
+  metadata:
+    reference_id: TCMR-40040
+    status: CMR Complete
+    created_at: '2026-06-22'
+    project: TCMR
+
+- input:
+    issue_description: Revoke Priya Raman's admin access to the identity console after her team transfer.
+  expected: A change request to revoke an individual's admin access to the identity console after a team transfer.
+  metadata:
+    reference_id: TCMR-40035
+    status: Done
+    created_at: '2026-06-18'
+    project: TCMR
+
+- input:
+    issue_description: Grant Marcus Feldt temporary production access to run the Q2 payroll data migration.
+  expected: A change request to grant an engineer temporary production access to run the Q2 payroll data migration.
+  metadata:
+    reference_id: TCMR-40030
+    status: Done
+    created_at: '2026-06-18'
+    project: TCMR
+
+- input:
+    issue_description: TCMR-40050 requires comms sent out
+  expected: A follow-up task noting that communications need to be sent out for change TCMR-40050.
+  metadata:
+    reference_id: TCMR-40025
+    status: Done
+    created_at: '2026-06-16'
+    project: TCMR

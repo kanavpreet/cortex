@@ -1,0 +1,21 @@
+name: 10-init-api-wait
+
+image: 172631448019.dkr.ecr.us-east-1.amazonaws.com/busybox:2025-12-04-daily
+
+command:
+  - /bin/sh
+
+args:
+  - -c
+  - |
+    until wget -q --timeout=5 --spider {{ .Env.Params.api.api_endpoint }}/ready; do
+      echo "api not ready, retrying in 10s..."
+      echo "endpoint: {{ .Env.Params.api.api_endpoint }}/ready"
+      sleep 10
+    done
+    echo "api is ready"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi

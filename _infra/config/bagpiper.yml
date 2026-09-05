@@ -1,0 +1,6 @@
+# This will use the production bag. Want to use the development bag?
+# Copy over config/bagpiper.dev.yml and comment out the yaml below.
+databagName: matik
+bagpiperEnvironment: production
+privateKeyPath: _infra/keys/matik.production.sec.json
+validationEnvironments: ["development", "production"]

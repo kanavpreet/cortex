@@ -1,0 +1,185 @@
+# # See https://pre-commit.com for more information
+# # See https://pre-commit.com/hooks.html for more hooks
+
+default_language_version:
+  python: python3.13
+
+# General pre-commit hooks
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v6.0.0
+  hooks:
+  -   id: trailing-whitespace
+  -   id: end-of-file-fixer
+  -   id: check-yaml
+      exclude: ^_infra/kube/(apps|files)/.*\.ya?ml$
+  -   id: check-added-large-files
+  -   id: check-ast
+  -   id: check-case-conflict
+  -   id: check-builtin-literals
+  -   id: check-executables-have-shebangs
+  -   id: check-toml
+  -   id: debug-statements
+  -   id: file-contents-sorter
+      types: [yaml]
+  -   id: forbid-new-submodules
+  -   id: pretty-format-json
+      exclude: ^(_infra/(secrets/(matik)|keys|secret-lair)|\.claude|matik/local-configs/grafana)/.*\.json$|^matik/pyrightconfig\.json$
+
+# Python specific pre-commit hooks using uv
+- repo: https://github.com/astral-sh/uv-pre-commit
+  # uv version.
+  rev: 0.9.22
+  hooks:
+    # Update the uv lockfile
+    - id: uv-lock
+    - id: uv-sync
+    - id: uv-export
+
+- repo: local
+  # These can be updated to use uv run hook once this PR is merged: https://github.com/astral-sh/uv-pre-commit/pull/53
+  hooks:
+    # Matik Python project hooks
+    - id: format-matik-python
+      name: Format Matik Python code with Ruff
+      entry: uv run --directory matik --python 3.13 ruff format .
+      language: system
+      pass_filenames: false
+      types: [python]
+      files: ^matik/
+      verbose: true
+      stages: [pre-commit]
+
+    - id: lint-matik-python
+      name: Lint Matik Python code with Ruff
+      entry: uv run --directory matik --python 3.13 ruff check .
+      language: system
+      pass_filenames: false
+      types: [python]
+      files: ^matik/
+      verbose: true
+      stages: [pre-commit]
+
+    - id: mypy-matik-type-check
+      name: Run Matik MyPy type checks
+      entry: uv run --directory matik --python 3.13 mypy .
+      language: system
+      pass_filenames: false
+      types: [python]
+      files: ^matik/
+      verbose: true
+      stages: [pre-commit]
+
+    # - id: pyright-matik-type-check
+    #   name: Run Matik Pyright type checks
+    #   entry: uv run --directory matik --python 3.13 pyright .
+    #   language: system
+    #   pass_filenames: false
+    #   types: [python]
+    #   files: ^matik/
+    #   verbose: true
+    #   stages: [pre-commit]
+
+    - id: unit-tests-matik
+      name: Run Matik Python unit tests
+      entry: uv run --directory matik --python 3.13 pytest
+      language: system
+      pass_filenames: false
+      types: [python]
+      files: ^matik/
+      verbose: true
+      stages: [pre-commit]
+
+    # Scripts Python project hooks
+    - id: format-scripts-python
+      name: Format Scripts Python code with Ruff
+      entry: uv run --directory scripts --python 3.13 ruff format .
+      language: system
+      pass_filenames: false
+      types: [python]
+      files: ^scripts/
+      verbose: true
+      stages: [pre-commit]
+
+    - id: lint-scripts-python
+      name: Lint Scripts Python code with Ruff
+      entry: uv run --directory scripts --python 3.13 ruff check .
+      language: system
+      pass_filenames: false
+      types: [python]
+      files: ^scripts/
+      verbose: true
+      stages: [pre-commit]
+
+    - id: mypy-scripts-type-check
+      name: Run Scripts MyPy type checks
+      entry: uv run --directory scripts --python 3.13 mypy .
+      language: system
+      pass_filenames: false
+      types: [python]
+      files: ^scripts/
+      verbose: true
+      stages: [pre-commit]
+
+    # - id: pyright-scripts-type-check
+    #   name: Run Scripts Pyright type checks
+    #   entry: uv run --directory scripts --python 3.13 pyright .
+    #   language: system
+    #   pass_filenames: false
+    #   types: [python]
+    #   files: ^scripts/
+    #   verbose: true
+    #   stages: [pre-commit]
+
+    - id: unit-tests-scripts
+      name: Run Scripts Python unit tests
+      entry: uv run --directory scripts --python 3.13 pytest
+      language: system
+      pass_filenames: false
+      types: [python]
+      files: ^scripts/
+      verbose: true
+      stages: [pre-commit]
+
+      # # Configuration validation
+    - id: validate-configs
+      name: Validate config file consistency (kube vs local)
+      entry: scripts/validate-configs.sh
+      language: script
+      pass_filenames: false
+      verbose: true
+      stages: [pre-commit]
+      files: '(_infra/kube/files/|matik/local-configs/).*\.ya?ml$'
+    - id: validate-env-vars
+      name: Validate environment variables in .env.example
+      entry: scripts/validate-env-vars.sh
+      language: script
+      pass_filenames: false
+      verbose: true
+      stages: [pre-commit]
+      files: '(matik/local-configs/.*\.ya?ml$|\.env\.example$)'
+    - id: validate-yaml-naming
+      name: Validate YAML keys follow snake_case convention
+      entry: scripts/validate-yaml-naming.sh
+      language: script
+      pass_filenames: false
+      verbose: true
+      stages: [pre-commit]
+      exclude: '(matik/local-configs/grafana/provisioning/|.*jira-backstage-mapping).*\.ya?ml$'
+      files: '(_infra/kube/files/|matik/local-configs/).*\.ya?ml$'
+    - id: validate-migrations
+      name: Validate SQL migration files follow best practices
+      entry: scripts/validate-migrations.sh
+      language: script
+      pass_filenames: false
+      verbose: true
+      stages: [pre-commit]
+      files: 'common/migrations/.*\.sql$'
+    - id: update-dashboard-timestamp
+      name: Update Grafana dashboard last-modified timestamp
+      entry: scripts/update-dashboard-timestamp.sh
+      language: script
+      pass_filenames: false
+      verbose: true
+      stages: [pre-commit]
+      files: 'matik/local-configs/grafana/provisioning/dashboards/matik-metrics\.json$'

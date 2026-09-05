@@ -1,0 +1,70 @@
+---
+workload:
+  cronJob:
+    schedule: '0 * * * *'
+    restartPolicy: OnFailure
+    concurrencyPolicy: Forbid  # Skip new job if previous is still running
+    suspend: false  # optional
+    successfulJobsHistoryLimit: 1 # optional (Defaults to 3)
+    failedJobsHistoryLimit: 1 # optional (Defaults to 1)
+    activeDeadlineSeconds: 3600
+
+# This will be enabled after FastAPI has been setup
+inits:
+  - name: 10-init-api-wait
+
+mainContainer:
+  name: matik-historian-biztech-github
+  imageSpec: historian-dockerfile
+  command:
+    - python
+    - -m
+    - historian.biztech_github
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1000Mi
+      ephemeral-storage: 512Mi
+    limits:
+      memory: 1000Mi
+      ephemeral-storage: 512Mi
+
+  # File mount for matik config and not volume mount for config separation
+  # use volumeMount for directories
+  fileMounts:
+    - filename: matik-historian-config.yml
+      mountPath: /app/config/matik-historian-config.yml
+    - filename: matik-historian-biztech-github-config.yml
+      mountPath: /app/config/matik-historian-biztech-github-config.yml
+    - filename: facade-config.yml
+      mountPath: /app/config/facade-config.yml
+    - filename: matik-api-config.yml
+      mountPath: /app/config/matik-api-config.yml
+    - filename: metrics.yml
+      mountPath: /app/config/metrics.yml
+    - filename: matik-enricher-config.yml
+      mountPath: /app/config/matik-enricher-config.yml
+
+
+components:
+- name: secrets
+- name: logging
+
+iamRole: matik-staging
+
+# Disable veneur sidecar and rely on otel-collector for all metrics
+disableVeneur: true
+
+supportedCPUArchitectures:
+  - amd64
+  - arm64
+
+environments:
+  staging: {}
+  canary:
+    iamRole: matik-production
+  production:
+    iamRole: matik-production
+  sandbox:
+    iamRole: matik-sandbox

@@ -1,0 +1,46 @@
+---
+workload:
+  deployment:
+    replicas: 1
+
+mainContainer:
+  name: matik-dbmanager
+  imageSpec: dbmanager-dockerfile
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  fileMounts:
+    - filename: matik-dbmanager-config.yml
+      mountPath: /app/config/matik-migrator-config.yml
+  volumeMounts:
+    - mountPath: /tmp/pod
+      name: tmp-pod
+      readOnly: false
+
+components:
+- name: secrets
+
+iamRole: matik-staging
+
+disableVeneur: true
+
+service:
+  ports:
+  - port: 8080
+
+supportedCPUArchitectures:
+  - amd64
+  - arm64
+
+environments:
+  staging: {}
+  canary:
+    iamRole: matik-production
+  production:
+    iamRole: matik-production
+  sandbox:
+    iamRole: matik-sandbox

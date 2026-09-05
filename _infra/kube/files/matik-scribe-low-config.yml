@@ -1,0 +1,45 @@
+---
+# Configuration for the low-priority Scribe deployment.
+# Consumes the low-priority SQS queue (enricher LLM job output).
+
+# Common configuration shared across services
+common:
+  environment: {{ .Env.Name }}
+  log_level: INFO
+
+# Database configuration supporting AWS IAM authentication for RDS connections
+mysql:
+  engine: mysql
+  endpoint: {{ .Env.Params.mysql.rds_endpoint }}
+  port: 3306
+  username: {{ .Env.Params.mysql.default_rds_username }}
+  password: '{{ .App.Secrets.mysql.default_rds_password | default "" }}'
+  database: {{ .Env.Params.mysql.rds_database }}
+  ssl_mode: 'required'
+  max_open_conns: {{ .Env.Params.mysql.scribe.max_open_conns }}
+  max_idle_conns: {{ .Env.Params.mysql.scribe.max_idle_conns }}
+  conn_max_idle_time_minutes: {{ .Env.Params.mysql.scribe.conn_max_idle_time_minutes }}
+  use_iam: {{ .Env.Params.mysql.use_iam }}
+  token_expiry_minutes: {{ .Env.Params.mysql.iam.token_expiry_minutes | default 15 }}
+  token_expiry_grace_minutes: {{ .Env.Params.mysql.iam.token_expiry_grace_minutes | default 1 }}
+  canonical_endpoint: '{{ .Env.Params.mysql.rds_canonical_endpoint | default "" }}'
+  corpinfra_role_arn: '{{ .Env.Params.mysql.scribe.corpinfra_role_arn | default "" }}'
+  region: '{{ .Env.Params.mysql.aws_region | default "" }}'
+
+# Scribe worker configuration — single low-priority queue
+scribe:
+  queue:
+    queue_url: {{ .Env.Params.scribe.low_priority.sqs_queue_url }}
+    dlq_url:   {{ .Env.Params.scribe.low_priority.sqs_dlq_url }}
+  sqs_queue_region: {{ .Env.Params.scribe.sqs_queue_region }}
+  sqs_max_messages: {{ .Env.Params.scribe.sqs_max_messages }}
+  sqs_wait_time_seconds: {{ .Env.Params.scribe.low_priority.sqs_wait_time_seconds }}
+  sqs_visibility_timeout: {{ .Env.Params.scribe.sqs_visibility_timeout }}
+  sqs_poll_error_delay: {{ .Env.Params.scribe.sqs_poll_error_delay }}
+  max_concurrent_writes: {{ .Env.Params.scribe.low_priority.max_concurrent_writes }}
+  enrichment_base_not_found_delay: {{ .Env.Params.scribe.enrichment_base_not_found_delay }}
+  batch_max_messages: {{ .Env.Params.scribe.low_priority.batch_max_messages }}
+  batch_flush_interval_ms: {{ .Env.Params.scribe.low_priority.batch_flush_interval_ms }}
+
+enigmatologist:
+  sqs_queue_url: {{ .Env.Params.enigmatologist.sqs_queue_url }}  # SQS queue URL for receiving correlation requests

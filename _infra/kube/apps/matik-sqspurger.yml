@@ -1,0 +1,50 @@
+---
+workload:
+  job:
+    restartPolicy: Never
+    backoffLimit: 0 # Don't retry — SQS purge has a 60s cooldown per queue
+    ttlSecondsAfterFinished: 86400 # Keep job history for 1 day after completion
+    activeDeadlineSeconds: 120 # Kill job if purge takes longer than 2 minutes
+
+mainContainer:
+  name: matik-sqspurger
+  imageSpec: sqspurger-dockerfile
+  command:
+    - python
+    - -m
+    - sqspurger
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+  fileMounts:
+    - filename: matik-sqspurger-config.yml
+      mountPath: /app/config/matik-sqspurger-config.yml
+  volumeMounts:
+    - mountPath: /tmp/pod
+      name: tmp-pod
+      readOnly: false
+
+components:
+- name: secrets
+
+iamRole: matik-staging
+
+# Disable veneur sidecar and rely on otel-collector for all metrics
+disableVeneur: true
+
+supportedCPUArchitectures:
+  - amd64
+  - arm64
+
+environments:
+  staging: {}
+  canary:
+    iamRole: matik-production
+  production:
+    iamRole: matik-production
+  sandbox:
+    iamRole: matik-sandbox

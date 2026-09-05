@@ -1,0 +1,18 @@
+# Incident.io Historian Configuration
+incidentio:
+  api_key: ${HISTORIAN_INCIDENTIO_API_KEY} # required
+  base_url: ${HISTORIAN_INCIDENTIO_BASE_URL} # API base URL
+  page_size: ${HISTORIAN_INCIDENTIO_PAGE_SIZE} # incidents per API request (max 500)
+  max_retries: ${HISTORIAN_INCIDENTIO_MAX_RETRIES} # retry attempts for failed requests
+  timeout: ${HISTORIAN_INCIDENTIO_TIMEOUT} # request timeout in seconds
+  backoff_delays: [2.0, 4.0, 8.0] # delays between retries in seconds
+  start_date: "${HISTORIAN_INCIDENTIO_START_DATE}" # initial sync start date (YYYY-MM-DD)
+  lookback_days: ${HISTORIAN_INCIDENTIO_LOOKBACK_DAYS} # days to look back on subsequent runs
+  write_batch_size: ${HISTORIAN_INCIDENTIO_WRITE_BATCH_SIZE} # incidents per database write batch
+  consumer_timeout_seconds: ${HISTORIAN_INCIDENTIO_CONSUMER_TIMEOUT_SECONDS} # queue consumer timeout
+  max_concurrent_llm_calls: ${HISTORIAN_INCIDENTIO_MAX_CONCURRENT_LLM_CALLS} # max parallel LLM calls
+  root_cause_prompt: "${HISTORIAN_INCIDENTIO_ROOT_CAUSE_PROMPT}"
+  description_prompt: "${HISTORIAN_INCIDENTIO_DESCRIPTION_PROMPT}"
+  incident_type_ids: ["01HDCV644PMEQQTNKB4MNKTMSM"]
+  sqs_queue_url: "${SCRIBE_LOW_PRIORITY_QUEUE_URL}"  # SQS queue URL for dispatching Incident.io events
+  sqs_queue_region: 'us-east-1'

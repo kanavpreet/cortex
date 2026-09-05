@@ -1,0 +1,162 @@
+---
+# Migration validation job - validates migration files are correct
+# Note: This validates syntax and pairing, full DB testing happens in CD
+# Uses Python/Alembic for migrations (migrated from golang-migrate)
+dockerfile: "../migrations.Dockerfile"
+
+steps:
+  - type: run
+    label: Check for migration changes
+    command: |
+      set -euo pipefail
+      echo "Checking if migration files were modified..."
+
+      # Migration paths to check (Python Alembic migrations)
+      MIGRATION_PATHS="matik/migrator/alembic/versions/|matik/common/migrations/"
+
+      # Use JORB_GIT_MERGE_BASE if available (Airbnb's CI system)
+      if [ -n "${JORB_GIT_MERGE_BASE:-}" ]; then
+        BASE_COMMIT="$JORB_GIT_MERGE_BASE"
+        echo "Using JORB_GIT_MERGE_BASE: $BASE_COMMIT"
+        echo "Checking all commits from $BASE_COMMIT to HEAD"
+
+        # Check if any migration files were changed across all commits
+        if git diff --name-only "$BASE_COMMIT"...HEAD | grep -qE "$MIGRATION_PATHS"; then
+          echo "Migration files detected - will run tests"
+          echo "Changed migration files:"
+          git diff --name-only "$BASE_COMMIT"...HEAD | grep -E "$MIGRATION_PATHS" || true
+          exit 0
+        else
+          echo "No migration files changed - skipping migration tests"
+          # Create a marker file to signal other steps to skip
+          touch /tmp/skip_migrations
+          exit 0
+        fi
+      elif [ -n "${BUILDKITE_COMMIT_RANGE:-}" ]; then
+        # Buildkite sets this for some configurations
+        COMMIT_RANGE="$BUILDKITE_COMMIT_RANGE"
+        BASE_COMMIT=$(echo "$COMMIT_RANGE" | cut -d'.' -f1)
+        echo "Using BUILDKITE_COMMIT_RANGE: $COMMIT_RANGE"
+        echo "Checking all commits from $BASE_COMMIT to HEAD"
+
+        # Check if any migration files were changed across all commits
+        if git diff --name-only "$BASE_COMMIT"...HEAD | grep -qE "$MIGRATION_PATHS"; then
+          echo "Migration files detected - will run tests"
+          echo "Changed migration files:"
+          git diff --name-only "$BASE_COMMIT"...HEAD | grep -E "$MIGRATION_PATHS" || true
+          exit 0
+        else
+          echo "No migration files changed - skipping migration tests"
+          # Create a marker file to signal other steps to skip
+          touch /tmp/skip_migrations
+          exit 0
+        fi
+      else
+        # Fallback: Cannot determine commit range, run migrations as safety measure
+        echo "Cannot determine commit range - running migrations as safety measure"
+        echo "Will run migration tests"
+        exit 0
+      fi
+  - type: run
+    label: Install Python dependencies
+    command: |
+      if [ -f /tmp/skip_migrations ]; then
+        echo "Skipping dependency installation (no migration changes)"
+        exit 0
+      fi
+      set -euxo pipefail
+      echo "Installing Python dependencies for migrator..."
+      cd matik
+      uv sync --extra migrator
+      echo "Dependencies installed successfully!"
+  - type: run
+    label: Start MySQL
+    command: |
+      if [ -f /tmp/skip_migrations ]; then
+        echo "Skipping MySQL setup (no migration changes)"
+        exit 0
+      fi
+      /jorb/scripts/start-mysql.sh
+  - type: run
+    label: Create database and user
+    command: |
+      if [ -f /tmp/skip_migrations ]; then
+        echo "Skipping database creation (no migration changes)"
+        exit 0
+      fi
+      set -euxo pipefail
+      # Create database
+      mysql -u root -e "CREATE DATABASE IF NOT EXISTS matik;"
+      # Create user with password auth for TCP connections
+      mysql -u root -e "CREATE USER IF NOT EXISTS 'matik_user'@'%' IDENTIFIED BY 'matik_password';"
+      mysql -u root -e "GRANT ALL PRIVILEGES ON matik.* TO 'matik_user'@'%';"
+      mysql -u root -e "FLUSH PRIVILEGES;"
+      echo "Database 'matik' and user 'matik_user' created"
+  - type: run
+    label: Run migrations (upgrade)
+    command: |
+      if [ -f /tmp/skip_migrations ]; then
+        echo "Skipping migrations upgrade (no migration changes)"
+        exit 0
+      fi
+      set -euxo pipefail
+      echo "Running migrations upgrade to head..."
+      cd matik
+      export MYSQL_USER=matik_user
+      export MYSQL_PASSWORD=matik_password
+      export MYSQL_HOST=127.0.0.1
+      export MYSQL_PORT=3306
+      export MYSQL_DATABASE=matik
+      export MIGRATIONS_PATH=$(pwd)/common/migrations
+      uv run alembic -c migrator/alembic.ini upgrade head
+      echo "Migrations upgrade completed successfully!"
+  - type: run
+    label: Rollback migrations (downgrade)
+    command: |
+      if [ -f /tmp/skip_migrations ]; then
+        echo "Skipping migrations downgrade (no migration changes)"
+        exit 0
+      fi
+      set -euxo pipefail
+      echo "Rolling back all migrations..."
+      cd matik
+      export MYSQL_USER=matik_user
+      export MYSQL_PASSWORD=matik_password
+      export MYSQL_HOST=127.0.0.1
+      export MYSQL_PORT=3306
+      export MYSQL_DATABASE=matik
+      export MIGRATIONS_PATH=$(pwd)/common/migrations
+      uv run alembic -c migrator/alembic.ini downgrade base
+      echo "Migrations downgrade completed successfully!"
+  - type: run
+    label: Re-apply migrations (upgrade)
+    command: |
+      if [ -f /tmp/skip_migrations ]; then
+        echo "Skipping migrations re-apply (no migration changes)"
+        exit 0
+      fi
+      set -euxo pipefail
+      echo "Re-applying migrations..."
+      cd matik
+      export MYSQL_USER=matik_user
+      export MYSQL_PASSWORD=matik_password
+      export MYSQL_HOST=127.0.0.1
+      export MYSQL_PORT=3306
+      export MYSQL_DATABASE=matik
+      export MIGRATIONS_PATH=$(pwd)/common/migrations
+      uv run alembic -c migrator/alembic.ini upgrade head
+      echo "Migrations re-applied successfully!"
+  - type: run
+    label: Generate failure banner
+    id: migrate-failure-banner
+    when: on_failure
+    command: |
+      echo '{
+        "style": "error",
+        "body": "**Migration Tests Failed!**<br/><br/>**Error:** See the failed step output for details.<br/><br/>**What was tested:**<br/>1. `upgrade head` - Apply all migrations forward<br/>2. `downgrade base` - Rollback all migrations<br/>3. `upgrade head` - Re-apply migrations (idempotency test)<br/><br/>**To debug:**<br/>1. Run migrations locally: `cd matik && uv run python -m matik.migrator`<br/>2. Test rollback: `cd matik && uv run alembic -c migrator/alembic.ini downgrade base`<br/>3. Ensure your migration `downgrade()` functions correctly reverse `upgrade()` changes"
+      }'
+  - type: banner
+    label: Display failure banner
+    banner_json: "{{migrate-failure-banner}}"
+    when: on_failure
+    banner_id: migration-failure

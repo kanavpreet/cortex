@@ -1,0 +1,10 @@
+[
+  "Current status: investigating. Checkout latency p99 jumped to 4.2s starting ~14:05 UTC, correlated with a deploy of payments-gateway v238. On-call is rolling back the deploy; next update in 15 minutes.",
+  "Mitigation in progress: traffic for the affected region has been shifted to the secondary cluster. Error rate has dropped from 18% to 3%. Root cause still unconfirmed, suspect a connection pool exhaustion in the booking-service database tier.",
+  "Root cause identified: a misconfigured feature flag enabled a synchronous call path in search-ranking that should have been async, causing thread pool saturation. Fix is being tested in staging; ETA to production ~20 minutes.",
+  "Impact: guest-facing search results page returning 500s for ~6% of requests. No impact to booking or payments flows. Incident commander has paged the search-platform on-call for additional support.",
+  "Update: rollback of the offending deploy completed at 14:22 UTC. Error rates have returned to baseline. Monitoring for 30 minutes before considering this resolved. No customer communication has gone out yet.",
+  "Status: mitigated. The database failover completed successfully and write latency is back to normal. Team is now working on the postmortem and identifying why automatic failover did not trigger sooner.",
+  "Escalation: this incident has been upgraded to SEV1 due to spreading impact to the host-payouts pipeline. Finance eng has been paged. Current working theory is a shared Redis cluster hitting max memory.",
+  "Update: no further customer impact observed in the last 15 minutes. Keeping the incident open to confirm stability before downgrading severity and drafting the postmortem."
+]

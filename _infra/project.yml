@@ -1,0 +1,16 @@
+---
+name: matik
+description: |
+  Matik, from the tagalog root word "awtomatiko" meaning automate, is an AIOps platform that provides a unified reliability data api and reliability data trained LLMs for the purpose of powering intelligence and automation in the techinical operations and reliability space. Matik is where reliability engineers and tools come together.
+slack: biztech-opseng-goalie
+email: biztech-ops-eng.team@airbnb.com
+teams:
+  - 'one_airbnb_team_id_3579' # AMER Global Operations (https://one.airbnb.com/teams/3579_global-operations)
+  - 'one_airbnb_team_id_3105' # APAC Global Operations (https://one.airbnb.com/teams/3105_global-operations-apac)
+  - 'one_airbnb_team_id_791' # Global Operations (https://one.airbnb.com/teams/791)
+additional_owners: []
+type: library
+data_sensitivity: public
+criticality:
+  - internal_operations: tier3
+primary_language: python

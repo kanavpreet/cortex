@@ -1,0 +1,20 @@
+---
+# Jira-specific configuration for Matik Historian
+# This is to be used only for local development via docker-compose.
+
+jira:
+  base_url: ${HISTORIAN_JIRA_BASE_URL}
+  username: ${HISTORIAN_JIRA_USERNAME}
+  password: ${HISTORIAN_JIRA_PASSWORD}
+  tcmr_jql_enabled: ${HISTORIAN_JIRA_TCMR_JQL_ENABLED}
+  tcmr_jql: ${HISTORIAN_JIRA_TCMR_JQL}
+  operational_jql_enabled: ${HISTORIAN_JIRA_OPERATIONAL_JQL_ENABLED}
+  operational_jql: ${HISTORIAN_JIRA_OPERATIONAL_JQL}
+  pagination_max_results: ${HISTORIAN_JIRA_PAGINATION_MAX_RESULTS}
+  lookback_days: ${HISTORIAN_JIRA_LOOKBACK_DAYS}
+  llm_description_prompt: "${HISTORIAN_JIRA_LLM_DESCRIPTION_PROMPT}"
+  llm_comments_prompt: "${HISTORIAN_JIRA_LLM_COMMENTS_PROMPT}"
+  client_timeout: ${HISTORIAN_JIRA_CLIENT_TIMEOUT}
+  catch_up_min_gap_minutes: ${HISTORIAN_JIRA_CATCH_UP_MIN_GAP_MINUTES}
+  sqs_queue_url: ${SCRIBE_LOW_PRIORITY_QUEUE_URL}
+  sqs_queue_region: 'us-east-1'

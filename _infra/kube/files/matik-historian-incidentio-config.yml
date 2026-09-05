@@ -1,0 +1,18 @@
+# Incident.io Historian Configuration
+incidentio:
+  api_key: '{{ .App.Secrets.incidentio.api_key | default "" }}'  # Incident.io API key for authentication
+  base_url: {{ .Env.Params.incidentio.base_url }} # API base URL
+  page_size: {{ .Env.Params.incidentio.page_size }} # incidents per API request (max 500)
+  max_retries: {{ .Env.Params.incidentio.max_retries }} # retry attempts for failed requests
+  timeout: {{ .Env.Params.incidentio.timeout }} # request timeout in seconds
+  backoff_delays: {{ .Env.Params.incidentio.backoff_delays | toJson }} # delays between retries in seconds
+  start_date: "{{ .Env.Params.incidentio.start_date }}" # initial sync start date (YYYY-MM-DD)
+  lookback_days: {{ .Env.Params.incidentio.lookback_days }} # days to look back on subsequent runs
+  write_batch_size: {{ .Env.Params.incidentio.write_batch_size }} # incidents per database write batch
+  consumer_timeout_seconds: {{ .Env.Params.incidentio.consumer_timeout_seconds }} # queue consumer timeout
+  max_concurrent_llm_calls: {{ .Env.Params.incidentio.max_concurrent_llm_calls }} # max parallel LLM calls
+  root_cause_prompt: "{{ .Env.Params.incidentio.root_cause_prompt }}" # LLM prompt for summarizing root cause
+  description_prompt: "{{ .Env.Params.incidentio.description_prompt }}" # LLM prompt for summarizing description
+  incident_type_ids: {{ .Env.Params.incidentio.incident_type_ids | toJson }} # Filter by incident type IDs
+  sqs_queue_url: {{ .Env.Params.scribe.low_priority.sqs_queue_url }}  # SQS queue URL for dispatching Incident.io events
+  sqs_queue_region: 'us-east-1'  # AWS region for the SQS queue

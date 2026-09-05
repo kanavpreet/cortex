@@ -1,0 +1,10 @@
+---
+# Configuration for Matik SQS Purger
+
+common:
+  environment: {{ .Env.Name }}  # Deployment environment
+  log_level: INFO               # Logging level
+
+sqs_purger:
+  region: us-east-1
+  queue_urls: {{ .Env.Params.sqspurger.queue_urls | toJson }}  # All sandbox SQS queues to purge

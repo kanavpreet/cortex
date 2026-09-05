@@ -1,0 +1,38 @@
+# Local config for running integration tests against a live environment.
+# Copy to local.yml and fill in your IAP token — that's all you need.
+#
+# local.yml is gitignored and never committed.
+#
+# Usage:
+#   cp integration-tests/pytest/config/local.yml.example integration-tests/pytest/config/local.yml
+#   # paste your IAP token, then run:
+#   cd integration-tests/pytest && pytest tests/api/ --environment=staging
+
+# -------------------------------------------------------------------
+# Auth token — required for devAccess URLs (Google IAP protected).
+# Obtain with:
+#   iap-auth https://developers.a.musta.ch
+#
+# All service URLs (matik-api, matik-mcp, LLM Fusion Hub) are resolved
+# automatically from the --environment flag. No URLs needed here.
+# -------------------------------------------------------------------
+headers:
+  Authorization: "Bearer <your-identity-token>"
+
+# -------------------------------------------------------------------
+# Optional overrides — only needed if you want to point at a custom
+# endpoint or override the default model for an environment.
+# -------------------------------------------------------------------
+# api_base_url: https://api-matik-staging.a.musta.ch
+# mcp_base_url: https://mcp-matik-staging.a.musta.ch
+# facade_base_url: https://llm-fusion-hub.a.musta.ch/api/v2/proxy/azure/oai
+# bedrock_base_url: https://llm-fusion-hub.a.musta.ch/api/v2/proxy/aws/bedrock
+# facade_model: matik-staging-gpt-4o
+
+# -------------------------------------------------------------------
+# Phase 1c service secret — only needed once the target environment
+# enforces the matik-api signature check (enforce_service_signature: true).
+# Get the value from whoever holds the api.service_secret secret-lair
+# entry for that environment; do not commit it anywhere.
+# -------------------------------------------------------------------
+# service_secret: "<shared secret>"

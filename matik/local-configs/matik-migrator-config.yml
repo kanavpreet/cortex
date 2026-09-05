@@ -1,0 +1,22 @@
+---
+# Common configuration for Matik Migrator
+# This is to be used only for local development via docker-compose.
+
+common:
+  environment: ${ENVIRONMENT}
+  log_level: ${LOG_LEVEL}
+
+mysql:
+  engine: mysql
+  endpoint: ${MYSQL_HOST}
+  port: ${MYSQL_PORT}
+  username: ${MYSQL_USER}
+  password: ${MYSQL_PASSWORD}
+  database: ${MYSQL_DATABASE}
+  use_iam: false
+  ssl_mode: disabled
+  # Settings used for IAM auth -- use_iam: true
+  # region: ''
+  # canonical_endpoint: ''
+  # airbnbprod_role_arn: ''
+  # corpinfra_role_arn: ''
